@@ -58,7 +58,38 @@ h2 {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 10px;
 }
+.match-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+}
 
+.match-details label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.match-details input,
+.match-details select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dfe5ea;
+    border-radius: 10px;
+    font-size: 16px;
+    background: white;
+}
+
+@media (max-width: 600px) {
+
+    .match-details {
+        grid-template-columns: 1fr;
+    }
+
+}
+    
 .player {
     display: flex;
     align-items: center;
@@ -214,19 +245,63 @@ button:hover {
 </header>
 
 <div class="card">
-    <h2>1. Wie zijn er vandaag?</h2>
+
+    <h2>1. Nieuwe wedstrijd</h2>
+
     <p class="small">
-        Vink de spelers aan die vandaag aanwezig zijn.
-        De app berekent daarna automatisch het eerlijkste schema.
+        Vul eerst de wedstrijdgegevens in en geef daarna aan
+        welke spelers aanwezig zijn.
     </p>
+
+    <h3>Wedstrijdgegevens</h3>
+
+    <div class="match-details">
+
+        <label>
+            📅 Datum
+            <input
+                type="date"
+                id="matchDate"
+            >
+        </label>
+
+        <label>
+            🕐 Tijd
+            <input
+                type="time"
+                id="matchTime"
+            >
+        </label>
+
+        <label>
+            🏠 Thuis / Uit
+            <select id="matchHomeAway">
+                <option value="thuis">Thuis</option>
+                <option value="uit">Uit</option>
+            </select>
+        </label>
+
+        <label>
+            🆚 Tegenstander
+            <input
+                type="text"
+                id="opponent"
+                placeholder="Naam tegenstander"
+            >
+        </label>
+
+    </div>
+
+    <h3>Aanwezigheid</h3>
 
     <div id="players" class="players"></div>
 
     <button class="primary" onclick="generateSchedule()">
-        GENEREER EERLIJK WISSELSCHEMA
+        ⚽ MAAK WISSELSCHEMA
     </button>
 
     <div id="error"></div>
+
 </div>
 
 <div id="scheduleSection" class="card" style="display:none;">
@@ -938,9 +1013,54 @@ function generateSchedule() {
         document.getElementById("error");
 
     error.innerHTML = "";
+    
+const matchDate =
+    document.getElementById("matchDate").value;
 
-    const present =
-        getPresentPlayers();
+const matchTime =
+    document.getElementById("matchTime").value;
+
+const matchHomeAway =
+    document.getElementById("matchHomeAway").value;
+
+const opponent =
+    document.getElementById("opponent").value.trim();
+
+if (!matchDate) {
+
+    error.innerHTML = `
+        <div class="error">
+            ⚠️ Vul eerst de wedstrijddatum in.
+        </div>
+    `;
+
+    return;
+}
+
+if (!matchTime) {
+
+    error.innerHTML = `
+        <div class="error">
+            ⚠️ Vul eerst de aanvangstijd in.
+        </div>
+    `;
+
+    return;
+}
+
+if (!opponent) {
+
+    error.innerHTML = `
+        <div class="error">
+            ⚠️ Vul eerst de tegenstander in.
+        </div>
+    `;
+
+    return;
+}
+
+const present =
+    getPresentPlayers();
 
     if (present.length < 6) {
 
@@ -992,16 +1112,24 @@ function generateSchedule() {
     }
 
     currentSchedule = {
-        present,
-        playCounts,
-        benchSchedule
-    };
+    matchDate,
+    matchTime,
+    matchHomeAway,
+    opponent,
+    present,
+    playCounts,
+    benchSchedule
+};
 
-    displaySchedule(
-        present,
-        playCounts,
-        benchSchedule
-    );
+displaySchedule(
+    matchDate,
+    matchTime,
+    matchHomeAway,
+    opponent,
+    present,
+    playCounts,
+    benchSchedule
+);
 }
 
 
@@ -1010,6 +1138,10 @@ function generateSchedule() {
    ========================================================= */
 
 function displaySchedule(
+    matchDate,
+    matchTime,
+    matchHomeAway,
+    opponent,
     present,
     playCounts,
     benchSchedule
@@ -1040,6 +1172,11 @@ const advantageText = advantagePlayers.length
 document.getElementById(
     "summary"
 ).innerHTML = `
+    <strong>⚽ ${matchHomeAway === "thuis" ? "BBV Barendrecht" : opponent} 
+    ${matchHomeAway === "thuis" ? "– " + opponent : "– BBV Barendrecht"}</strong>
+    <br>
+    📅 ${matchDate} · 🕐 ${matchTime}
+    <br>
     ${present.length} spelers aanwezig ·
     6 spelers tegelijk in het veld ·
     4 rondes van 10 minuten
@@ -1130,10 +1267,14 @@ function finishMatch() {
     }
 
 
-    const {
-        present,
-        playCounts
-    } = currentSchedule;
+  const {
+    matchDate,
+    matchTime,
+    matchHomeAway,
+    opponent,
+    present,
+    playCounts
+} = currentSchedule;
 
 
     /*
@@ -1163,14 +1304,6 @@ function finishMatch() {
         "jo9_match_counter",
         String(matchNumber)
     );
-
-
-    /*
-    Datum van de wedstrijd.
-    */
-
-    const matchDate =
-        new Date().toISOString().slice(0, 10);
 
 
     /*
@@ -1274,13 +1407,19 @@ function finishMatch() {
     }
 
 
-    matches.push({
+matches.push({
 
-        matchNumber: matchNumber,
+    matchNumber: matchNumber,
 
-        date: matchDate,
+    date: matchDate,
 
-        playerCount: n,
+    time: matchTime,
+
+    homeAway: matchHomeAway,
+
+    opponent: opponent,
+
+    playerCount: n,
 
         presentPlayerIds:
             present.map(player => player.id),

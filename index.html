@@ -550,7 +550,8 @@ function findIdealPlayCounts(present) {
     /*
         BASISVERDELING
 
-        Eerst krijgt iedereen hetzelfde aantal speelrondes.
+        Eerst krijgt iedereen hetzelfde minimale aantal
+        speelrondes.
 
         8 spelers = 3 rondes per speler
         7 spelers = 3 rondes + 3 voordeelrondes
@@ -574,14 +575,14 @@ function findIdealPlayCounts(present) {
         We kijken alleen naar eerdere wedstrijden
         met EXACT hetzelfde aantal aanwezige spelers.
 
-        Dus:
-        - eerdere wedstrijd met 7 → telt alleen mee bij 7
-        - eerdere wedstrijd met 8 → telt niet mee bij 7
-        - eerdere wedstrijd met 9 → telt niet mee bij 7
+        Dus bij 7 spelers:
+        - eerdere wedstrijd met 7 telt mee
+        - wedstrijd met 8 telt niet mee
+        - wedstrijd met 9 telt niet mee
 
         Een speler die eerder voordeel kreeg,
-        krijgt bij de volgende keer met hetzelfde
-        aantal spelers niet automatisch opnieuw voordeel.
+        komt daardoor niet automatisch opnieuw
+        als eerste aan de beurt.
     */
 
     const ranking = present
@@ -594,7 +595,8 @@ function findIdealPlayCounts(present) {
 
             const relevantAdvantages =
                 advantageHistory.filter(
-                    item => Number(item.playerCount) === n
+                    item =>
+                        Number(item.playerCount) === n
                 );
 
             const advantageCount =
@@ -604,7 +606,8 @@ function findIdealPlayCounts(present) {
                 advantageCount > 0
                     ? Math.max(
                         ...relevantAdvantages.map(
-                            item => Number(item.matchNumber) || 0
+                            item =>
+                                Number(item.matchNumber) || 0
                         )
                     )
                     : 0;
@@ -613,18 +616,22 @@ function findIdealPlayCounts(present) {
                 index,
                 advantageCount,
                 lastAdvantage,
-                history: Number(player.history) || 0
+                history:
+                    Number(player.history) || 0
             };
         })
 
 
         /*
-            EERSTE KEUZE:
-            spelers met het minste aantal eerdere
-            voordelen voor dit aantal spelers.
+            VOLGORDE:
 
-            Hierdoor worden voordelen verdeeld.
+            1. Minst vaak voordeel gehad
+            2. Langst geleden voordeel gehad
+            3. Bij volledige gelijkstand:
+               laagste totale speeltijd
+            4. Als laatste de oorspronkelijke volgorde
         */
+
         .sort((a, b) => {
 
             if (
@@ -637,13 +644,6 @@ function findIdealPlayCounts(present) {
                 );
             }
 
-
-            /*
-                Bij gelijk aantal voordelen:
-                degene die het LANGST GELEDEN
-                voordeel heeft gehad komt eerst.
-            */
-
             if (
                 a.lastAdvantage !==
                 b.lastAdvantage
@@ -654,29 +654,23 @@ function findIdealPlayCounts(present) {
                 );
             }
 
-
-            /*
-                Laatste tiebreaker:
-                totale speelminuten.
-
-                Dit bepaalt dus NIET wie voordeel krijgt
-                wanneer de voordeelgeschiedenis verschillend is.
-                Het wordt alleen gebruikt als alles hierboven
-                exact gelijk is.
-            */
-
-            if (a.history !== b.history) {
-                return a.history - b.history;
+            if (
+                a.history !==
+                b.history
+            ) {
+                return (
+                    a.history -
+                    b.history
+                );
             }
-
 
             return a.index - b.index;
         });
 
 
     /*
-        Geef de extra speelrondes aan de eerlijkst
-        geschikte spelers.
+        Geef de extra speelrondes aan de
+        eerlijkst gerangschikte spelers.
     */
 
     for (
@@ -1033,13 +1027,25 @@ function displaySchedule(
                 )
         );
 
-    document.getElementById(
-        "summary"
-    ).innerHTML = `
-        ${present.length} spelers aanwezig ·
-        6 spelers tegelijk in het veld ·
-        4 rondes van 10 minuten
-    `;
+   const minimumRounds = Math.floor((6 * 4) / present.length);
+
+const advantagePlayers = present
+    .filter((player, index) => playCounts[index] > minimumRounds)
+    .map(player => player.name);
+
+const advantageText = advantagePlayers.length
+    ? `⭐ Voordeel deze wedstrijd: ${advantagePlayers.join(", ")}`
+    : `⚖️ Iedereen speelt deze wedstrijd evenveel.`;
+
+document.getElementById(
+    "summary"
+).innerHTML = `
+    ${present.length} spelers aanwezig ·
+    6 spelers tegelijk in het veld ·
+    4 rondes van 10 minuten
+    <br>
+    <strong>${advantageText}</strong>
+`;
 
     const rounds =
         document.getElementById("rounds");

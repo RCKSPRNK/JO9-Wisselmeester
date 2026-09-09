@@ -1137,13 +1137,7 @@ function finishMatch() {
 
 
     /*
-    Bepaal hoeveel speelrondes iedere speler
-    minimaal krijgt in deze wedstrijd.
-
-    8 spelers = 3 rondes
-    7 spelers = 3 rondes + 3 extra
-    6 spelers = 4 rondes
-    9 spelers = 2 rondes + 6 extra
+    Basisgegevens van deze wedstrijd.
     */
 
     const n = present.length;
@@ -1172,11 +1166,27 @@ function finishMatch() {
 
 
     /*
+    Datum van de wedstrijd.
+    */
+
+    const matchDate =
+        new Date().toISOString().slice(0, 10);
+
+
+    /*
+    Lijst met spelers die deze wedstrijd
+    voordeel kregen.
+    */
+
+    const advantageIds = [];
+
+
+    /*
     Werk voor iedere aanwezige speler
     de totale speeltijd bij.
     */
 
-    present.forEach(
+    const playerResults = present.map(
         (player, index) => {
 
             const minutes =
@@ -1224,16 +1234,74 @@ function finishMatch() {
                         playerCount: n
                     });
 
+                    advantageIds.push(player.id);
+
                 }
 
             }
+
+
+            return {
+                playerId: player.id,
+                name: player.name,
+                minutes: minutes,
+                rounds: playCounts[index]
+            };
 
         }
     );
 
 
     /*
-    Sla alles op.
+    Sla de volledige wedstrijd op.
+    */
+
+    let matches = [];
+
+    try {
+
+        const savedMatches =
+            localStorage.getItem("jo9_matches");
+
+        if (savedMatches) {
+            matches = JSON.parse(savedMatches);
+        }
+
+    } catch (error) {
+
+        matches = [];
+
+    }
+
+
+    matches.push({
+
+        matchNumber: matchNumber,
+
+        date: matchDate,
+
+        playerCount: n,
+
+        presentPlayerIds:
+            present.map(player => player.id),
+
+        players:
+            playerResults,
+
+        advantagePlayerIds:
+            advantageIds
+
+    });
+
+
+    localStorage.setItem(
+        "jo9_matches",
+        JSON.stringify(matches)
+    );
+
+
+    /*
+    Sla ook de spelersgegevens op.
     */
 
     savePlayers();
@@ -1244,7 +1312,7 @@ function finishMatch() {
     */
 
     alert(
-        "Wedstrijd opgeslagen! De speeltijd en voordeelverdeling zijn bijgewerkt."
+        "Wedstrijd opgeslagen! De speeltijd, voordeelverdeling en wedstrijdgegevens zijn bijgewerkt."
     );
 
 
@@ -1269,8 +1337,8 @@ function finishMatch() {
     */
 
     currentSchedule = null;
-}
 
+}
 
 /* =========================================================
    SPEELTIJD TABEL

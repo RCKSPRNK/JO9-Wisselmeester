@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JO9 Wisselmeester</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6f9;
+    color: #17212b;
+}
+
+.container {
+    max-width: 850px;
+    margin: auto;
+    padding: 20px;
+}
+
+header {
+    background: #17212b;
+    color: white;
+    padding: 24px;
+    border-radius: 18px;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+header p {
+    margin: 0;
+    opacity: .8;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.08);
+}
+
+h2 {
+    margin-top: 0;
+}
+
+.players {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #dfe5ea;
+    border-radius: 12px;
+}
+
+.player input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.player-name {
+    font-weight: bold;
+}
+
+.history {
+    margin-left: auto;
+    color: #6c7780;
+    font-size: 13px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.primary {
+    background: #17212b;
+    color: white;
+    width: 100%;
+    margin-top: 15px;
+}
+
+.secondary {
+    background: #e8edf1;
+    color: #17212b;
+}
+
+button:hover {
+    opacity: .9;
+}
+
+.error {
+    background: #ffe5e5;
+    color: #9b1c1c;
+    padding: 14px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+.rounds {
+    display: grid;
+    gap: 14px;
+}
+
+.round {
+    border: 2px solid #dfe5ea;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.round-header {
+    background: #17212b;
+    color: white;
+    padding: 13px 16px;
+    font-weight: bold;
+}
+
+.round-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+
+.playing,
+.bench {
+    padding: 16px;
+}
+
+.playing {
+    background: #f1f8f2;
+}
+
+.bench {
+    background: #fff5f2;
+}
+
+.playing h3,
+.bench h3 {
+    margin-top: 0;
+    font-size: 15px;
+}
+
+.playing ul,
+.bench ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.playing li,
+.bench li {
+    padding: 5px 0;
+}
+
+.minutes-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.minutes-table th,
+.minutes-table td {
+    padding: 9px;
+    border-bottom: 1px solid #e2e7eb;
+    text-align: left;
+}
+
+.minutes-table th {
+    background: #f5f7f9;
+}
+
+.small {
+    color: #6c7780;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .round-body {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        padding: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>⚽ JO9 Wisselmeester</h1>
+    <p>Automatisch en eerlijk wisselschema</p>
+</header>
+
+<div class="card">
+    <h2>1. Wie zijn er vandaag?</h2>
+    <p class="small">
+        Vink de spelers aan die vandaag aanwezig zijn.
+        De app berekent daarna automatisch het eerlijkste schema.
+    </p>
+
+    <div id="players" class="players"></div>
+
+    <button class="primary" onclick="generateSchedule()">
+        GENEREER EERLIJK WISSELSCHEMA
+    </button>
+
+    <div id="error"></div>
+</div>
+
+<div id="scheduleSection" class="card" style="display:none;">
+    <h2>2. Wisselschema</h2>
+
+    <p id="summary" class="small"></p>
+
+    <div id="rounds" class="rounds"></div>
+
+    <button class="primary" onclick="finishMatch()">
+        WEDSTRIJD AFRONDEN & SPEELTIJD OPSLAAN
+    </button>
+</div>
+
+<div class="card">
+    <h2>3. Historische speeltijd</h2>
+
+    <p class="small">
+        Deze stand wordt gebruikt om volgende wedstrijden eerlijker te verdelen.
+    </p>
+
+    <table class="minutes-table">
+        <thead>
+            <tr>
+                <th>Speler</th>
+                <th>Vandaag</th>
+                <th>Totaal</th>
+            </tr>
+        </thead>
+        <tbody id="minutesTable"></tbody>
+    </table>
+</div>
+
+</div>
+
+<script>
+
+/*
+===========================================================
+JO9 WISSELMEESTER
+===========================================================
+
+BELANGRIJKSTE REGEL:
+
+De app probeert na de wedstrijd de totale speeltijd
+van alle kinderen zo gelijk mogelijk te maken.
+
+Voorbeeld:
+
+7 spelers aanwezig
+4 rondes
+6 spelers spelen per ronde
+
+Er zijn 24 speelplaatsen.
+
+De app zoekt dan automatisch welke spelers 40 minuten
+en welke spelers 30 minuten krijgen, rekening houdend
+met hun historische speeltijd.
+
+Daarna bepaalt hij in welke ronde iedereen op de bank zit.
+
+===========================================================
+*/
+
+
+const DEFAULT_PLAYERS = [
+    { id: 1, name: "Lucas Mertens", history: 140 },
+    { id: 2, name: "Boaz Kaufmann", history: 130 },
+    { id: 3, name: "Divano Morais", history: 120 },
+    { id: 4, name: "Teun Uffelen", history: 120 },
+    { id: 5, name: "Lotte Koolmees", history: 110 },
+    { id: 6, name: "Kayleigh Degenkamp", history: 110 },
+    { id: 7, name: "Mace Spronk", history: 100 },
+    { id: 8, name: "Levi de Bruijn", history: 100 }
+];
+
+let players = loadPlayers();
+let currentSchedule = null;
+
+
+/* -----------------------------
+   OPSLAG
+----------------------------- */
+
+function loadPlayers() {
+    const saved = localStorage.getItem("jo9_players");
+
+    if (saved) {
+        return JSON.parse(saved);
+    }
+
+    localStorage.setItem(
+        "jo9_players",
+        JSON.stringify(DEFAULT_PLAYERS)
+    );
+
+    return JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+}
+
+function savePlayers() {
+    localStorage.setItem(
+        "jo9_players",
+        JSON.stringify(players)
+    );
+}
+
+
+/* -----------------------------
+   SPELERS TONEN
+----------------------------- */
+
+function renderPlayers() {
+
+    const container = document.getElementById("players");
+
+    container.innerHTML = "";
+
+    players.forEach(player => {
+
+        const div = document.createElement("div");
+
+        div.className = "player";
+
+        div.innerHTML = `
+            <input
+                type="checkbox"
+                id="player-${player.id}"
+                value="${player.id}"
+            >
+
+            <label for="player-${player.id}">
+                <span class="player-name">${player.name}</span>
+            </label>
+
+            <span class="history">
+                ${player.history} min
+            </span>
+        `;
+
+        container.appendChild(div);
+    });
+
+    renderMinutes();
+}
+
+
+/* -----------------------------
+   AANWEZIGE SPELERS
+----------------------------- */
+
+function getPresentPlayers() {
+
+    const checked = [
+        ...document.querySelectorAll(
+            '#players input[type="checkbox"]:checked'
+        )
+    ];
+
+    return checked.map(input =>
+        players.find(p => p.id == input.value)
+    );
+}
+
+
+/* =========================================================
+   DE EERLIJKHEIDSMOTOR
+   ========================================================= */
+
+/*
+We bepalen eerst hoeveel minuten iedere speler vandaag
+idealiter moet spelen.
+
+Dat doen we NIET door simpelweg iedereen hetzelfde aantal
+minuten te geven.
+
+We kijken naar:
+
+    historische minuten
+    +
+    minuten van vandaag
+
+Het doel is:
+
+    historische minuten + vandaag
+
+zo gelijk mogelijk maken.
+
+Bij 7 spelers zijn er bijvoorbeeld:
+
+    24 speelplaatsen
+
+Dus:
+
+    3 spelers = 4 rondes
+    4 spelers = 3 rondes
+
+De app bepaalt welke spelers die extra ronde verdienen.
+*/
+
+
+function findIdealPlayCounts(present) {
+
+    const n = present.length;
+    const totalPlaySlots = 6 * 4;
+
+    /*
+    We testen alle mogelijke aantallen speelrondes.
+
+    Iedere speler kan tussen 0 en 4 rondes spelen.
+    Het totaal moet exact 24 zijn.
+    */
+
+    let best = null;
+
+    function search(index, remaining, counts) {
+
+        if (index === n) {
+
+            if (remaining !== 0) {
+                return;
+            }
+
+            let finalTotals = [];
+
+            for (let i = 0; i < n; i++) {
+
+                finalTotals.push(
+                    present[i].history +
+                    counts[i] * 10
+                );
+            }
+
+            const average =
+                finalTotals.reduce((a,b) => a+b, 0) / n;
+
+            /*
+            Hoofddoel:
+
+            minimale afwijking van de gemiddelde totale
+            speeltijd.
+
+            */
+
+            let variance = 0;
+
+            finalTotals.forEach(total => {
+                variance += Math.pow(total - average, 2);
+            });
+
+            /*
+            Kleine extra voorkeur:
+
+            Als twee oplossingen even eerlijk zijn,
+            geven we iets meer voorkeur aan spelers die
+            historisch minder minuten hebben.
+            */
+
+            const score = variance;
+
+            if (!best || score < best.score) {
+
+                best = {
+                    score,
+                    counts: [...counts]
+                };
+            }
+
+            return;
+        }
+
+        /*
+        Pruning:
+        er moeten genoeg speelplaatsen overblijven.
+        */
+
+        const playersLeft = n - index - 1;
+
+        for (
+            let count = 0;
+            count <= 4;
+            count++
+        ) {
+
+            const newRemaining = remaining - count;
+
+            if (newRemaining < 0) {
+                continue;
+            }
+
+            if (
+                newRemaining >
+                playersLeft * 4
+            ) {
+                continue;
+            }
+
+            counts.push(count);
+
+            search(
+                index + 1,
+                newRemaining,
+                counts
+            );
+
+            counts.pop();
+        }
+    }
+
+    search(
+        0,
+        totalPlaySlots,
+        []
+    );
+
+    return best.counts;
+}
+
+
+/*
+===========================================================
+WISSELVOLGORDE
+===========================================================
+
+Nu weten we hoeveel rondes iedere speler moet spelen.
+
+Bijvoorbeeld:
+
+Lucas  3
+Boaz   3
+Mace   4
+Levi   4
+
+We moeten dit vervolgens over 4 rondes verdelen.
+
+Daarbij proberen we:
+
+- niemand twee keer achter elkaar op de bank
+- bankbeurten zo gelijkmatig mogelijk verspreiden
+- dezelfde bankcombinaties vermijden
+===========================================================
+*/
+
+
+function buildSchedule(present, playCounts) {
+
+    const n = present.length;
+
+    const benchCount = n - 6;
+
+    /*
+    benchRounds[playerIndex] = rondes waarin speler bank zit
+    */
+
+    let benchRounds = Array.from(
+        { length: n },
+        () => []
+    );
+
+    /*
+    Iedere speler moet:
+
+    4 - speelrondes
+
+    keer op de bank zitten.
+    */
+
+    const requiredBench = playCounts.map(
+        count => 4 - count
+    );
+
+    /*
+    We gebruiken backtracking om een geldige verdeling
+    te vinden.
+    */
+
+    let bestSchedule = null;
+    let bestScore = Infinity;
+
+    const rounds = [];
+
+    function recurse(round) {
+
+        if (round === 4) {
+
+            /*
+            Controleer aantallen.
+            */
+
+            for (let i = 0; i < n; i++) {
+
+                if (
+                    benchRounds[i].length !==
+                    requiredBench[i]
+                ) {
+                    return;
+                }
+            }
+
+            /*
+            Bereken kwaliteit van dit schema.
+            */
+
+            let score = 0;
+
+            /*
+            Straf dezelfde speler op de bank in
+            opeenvolgende rondes.
+            */
+
+            for (let i = 0; i < n; i++) {
+
+                for (
+                    let j = 1;
+                    j < benchRounds[i].length;
+                    j++
+                ) {
+
+                    if (
+                        benchRounds[i][j] ===
+                        benchRounds[i][j-1] + 1
+                    ) {
+                        score += 100;
+                    }
+                }
+            }
+
+            /*
+            Straf dezelfde bankcombinaties.
+            */
+
+            for (let r1 = 0; r1 < 4; r1++) {
+
+                for (
+                    let r2 = r1 + 1;
+                    r2 < 4;
+                    r2++
+                ) {
+
+                    const a = rounds[r1]
+                        .slice()
+                        .sort((x,y) => x-y);
+
+                    const b = rounds[r2]
+                        .slice()
+                        .sort((x,y) => x-y);
+
+                    if (
+                        JSON.stringify(a) ===
+                        JSON.stringify(b)
+                    ) {
+                        score += 50;
+                    }
+                }
+            }
+
+            /*
+            Lichte voorkeur om bankbeurten verspreid
+            over de wedstrijd te houden.
+            */
+
+            for (let i = 0; i < n; i++) {
+
+                if (benchRounds[i].length > 1) {
+
+                    const min =
+                        Math.min(...benchRounds[i]);
+
+                    const max =
+                        Math.max(...benchRounds[i]);
+
+                    if (max - min < 2) {
+                        score += 10;
+                    }
+                }
+            }
+
+            if (score < bestScore) {
+
+                bestScore = score;
+
+                bestSchedule =
+                    rounds.map(r => [...r]);
+            }
+
+            return;
+        }
+
+
+        /*
+        Kies mogelijke bankspelers voor deze ronde.
+        */
+
+        const combinations = combinationsOf(
+            [...Array(n).keys()],
+            benchCount
+        );
+
+        for (const combination of combinations) {
+
+            let valid = true;
+
+            /*
+            Deze speler mag niet vaker op de bank
+            dan nodig.
+            */
+
+            for (const index of combination) {
+
+                if (
+                    benchRounds[index].length >=
+                    requiredBench[index]
+                ) {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (!valid) {
+                continue;
+            }
+
+            /*
+            Voeg bankronde toe.
+            */
+
+            combination.forEach(index => {
+                benchRounds[index].push(round);
+            });
+
+            rounds.push(combination);
+
+            recurse(round + 1);
+
+            rounds.pop();
+
+            combination.forEach(index => {
+                benchRounds[index].pop();
+            });
+        }
+    }
+
+    recurse(0);
+
+    return bestSchedule;
+}
+
+
+/* -----------------------------
+   COMBINATIES
+----------------------------- */
+
+function combinationsOf(array, size) {
+
+    const result = [];
+
+    function combine(start, current) {
+
+        if (current.length === size) {
+
+            result.push([...current]);
+
+            return;
+        }
+
+        for (
+            let i = start;
+            i < array.length;
+            i++
+        ) {
+
+            current.push(array[i]);
+
+            combine(
+                i + 1,
+                current
+            );
+
+            current.pop();
+        }
+    }
+
+    combine(0, []);
+
+    return result;
+}
+
+
+/* =========================================================
+   SCHEMA GENEREREN
+   ========================================================= */
+
+function generateSchedule() {
+
+    const error =
+        document.getElementById("error");
+
+    error.innerHTML = "";
+
+    const present =
+        getPresentPlayers();
+
+    if (present.length < 6) {
+
+        error.innerHTML = `
+            <div class="error">
+                ⚠️ Er zijn minimaal 6 spelers nodig
+                om 6 tegen 6 te spelen.
+            </div>
+        `;
+
+        return;
+    }
+
+    /*
+    We beperken de eerste versie tot maximaal 12
+    spelers. Voor een JO9-team is dat ruim voldoende.
+    */
+
+    if (present.length > 12) {
+
+        error.innerHTML = `
+            <div class="error">
+                ⚠️ Deze eerste versie ondersteunt maximaal
+                12 aanwezige spelers.
+            </div>
+        `;
+
+        return;
+    }
+
+    const playCounts =
+        findIdealPlayCounts(present);
+
+    const benchSchedule =
+        buildSchedule(
+            present,
+            playCounts
+        );
+
+    if (!benchSchedule) {
+
+        error.innerHTML = `
+            <div class="error">
+                Er kon geen geldig schema worden gevonden.
+            </div>
+        `;
+
+        return;
+    }
+
+    currentSchedule = {
+        present,
+        playCounts,
+        benchSchedule
+    };
+
+    displaySchedule(
+        present,
+        playCounts,
+        benchSchedule
+    );
+}
+
+
+/* =========================================================
+   SCHEMA TONEN
+   ========================================================= */
+
+function displaySchedule(
+    present,
+    playCounts,
+    benchSchedule
+) {
+
+    document.getElementById(
+        "scheduleSection"
+    ).style.display = "block";
+
+    const benchNames =
+        benchSchedule.map(
+            indexes =>
+                indexes.map(
+                    i => present[i].name
+                )
+        );
+
+    document.getElementById(
+        "summary"
+    ).innerHTML = `
+        ${present.length} spelers aanwezig ·
+        6 spelers tegelijk in het veld ·
+        4 rondes van 10 minuten
+    `;
+
+    const rounds =
+        document.getElementById("rounds");
+
+    rounds.innerHTML = "";
+
+    for (let r = 0; r < 4; r++) {
+
+        const bench =
+            benchSchedule[r];
+
+        const playing =
+            present
+                .map((player, index) => ({
+                    player,
+                    index
+                }))
+                .filter(
+                    x => !bench.includes(x.index)
+                )
+                .map(x => x.player);
+
+        const div =
+            document.createElement("div");
+
+        div.className = "round";
+
+        div.innerHTML = `
+            <div class="round-header">
+                Ronde ${r + 1} · 10 minuten
+            </div>
+
+            <div class="round-body">
+
+                <div class="playing">
+                    <h3>🟢 IN HET VELD (${playing.length})</h3>
+
+                    <ul>
+                        ${playing.map(
+                            p => `<li>⚽ ${p.name}</li>`
+                        ).join("")}
+                    </ul>
+                </div>
+
+                <div class="bench">
+                    <h3>🔴 WISSEL</h3>
+
+                    <ul>
+                        ${bench.map(
+                            index =>
+                                `<li>🔄 ${present[index].name}</li>`
+                        ).join("")}
+                    </ul>
+                </div>
+
+            </div>
+        `;
+
+        rounds.appendChild(div);
+    }
+
+    /*
+    Scroll automatisch naar het schema.
+    */
+
+    document.getElementById(
+        "scheduleSection"
+    ).scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+
+/* =========================================================
+   WEDSTRIJD AFRONDEN
+   ========================================================= */
+
+function finishMatch() {
+
+    if (!currentSchedule) {
+        return;
+    }
+
+    const {
+        present,
+        playCounts
+    } = currentSchedule;
+
+    present.forEach(
+        (player, index) => {
+
+            const minutes =
+                playCounts[index] * 10;
+
+            const stored =
+                players.find(
+                    p => p.id === player.id
+                );
+
+            if (stored) {
+                stored.history += minutes;
+            }
+        }
+    );
+
+    savePlayers();
+
+    alert(
+        "Wedstrijd opgeslagen! De speeltijd is bijgewerkt."
+    );
+
+    renderPlayers();
+
+    document.getElementById(
+        "scheduleSection"
+    ).style.display = "none";
+
+    currentSchedule = null;
+}
+
+
+/* =========================================================
+   SPEELTIJD TABEL
+   ========================================================= */
+
+function renderMinutes() {
+
+    const tbody =
+        document.getElementById(
+            "minutesTable"
+        );
+
+    tbody.innerHTML = "";
+
+    players
+        .slice()
+        .sort(
+            (a,b) =>
+                a.history - b.history
+        )
+        .forEach(player => {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${player.name}</td>
+                <td>-</td>
+                <td><strong>${player.history} min</strong></td>
+            `;
+
+            tbody.appendChild(row);
+        });
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+renderPlayers();
+
+</script>
+
+</body>
+</html>

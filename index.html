@@ -302,7 +302,8 @@ const DEFAULT_PLAYERS = [
     { id: 7, name: "Mace Spronk", history: 0 },
     { id: 8, name: "Levi de Bruijn", history: 0 }
 ];
-
+const STORAGE_VERSION = 2;
+    
 let players = loadPlayers();
 let currentSchedule = null;
 
@@ -311,7 +312,7 @@ let currentSchedule = null;
    OPSLAG
 ----------------------------- */
 
-const STORAGE_VERSION = 2;
+
 
 function loadPlayers() {
 

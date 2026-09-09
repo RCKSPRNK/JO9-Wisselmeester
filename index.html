@@ -302,9 +302,10 @@ const DEFAULT_PLAYERS = [
     { id: 7, name: "Mace Spronk", history: 0 },
     { id: 8, name: "Levi de Bruijn", history: 0 }
 ];
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 3;
     
 let players = loadPlayers();
+let matches = loadMatches();
 let currentSchedule = null;
 
 
@@ -319,24 +320,52 @@ function loadPlayers() {
     const saved =
         localStorage.getItem("jo9_players");
 
-    const savedVersion =
-        localStorage.getItem("jo9_storage_version");
 
     /*
-    Als er al gegevens zijn én ze zijn van de huidige
-    versie, blijven ze behouden.
+    Als er al spelersgegevens zijn opgeslagen,
+    behouden we deze.
+
+    We voegen alleen nieuwe velden toe als die
+    nog niet bestaan.
     */
 
-    if (
-        saved &&
-        savedVersion === String(STORAGE_VERSION)
-    ) {
-        return JSON.parse(saved);
+    if (saved) {
+
+        try {
+
+            const parsed =
+                JSON.parse(saved);
+
+
+            return parsed.map(player => ({
+
+                ...player,
+
+                history:
+                    player.history || 0,
+
+                advantageHistory:
+                    Array.isArray(player.advantageHistory)
+                        ? player.advantageHistory
+                        : []
+
+            }));
+
+        } catch (error) {
+
+            console.error(
+                "Kon opgeslagen spelers niet laden:",
+                error
+            );
+
+        }
+
     }
 
+
     /*
-    Oude gegevens of een nieuwe versie:
-    begin opnieuw met 0 minuten.
+    Als er nog geen gegevens zijn,
+    begin met de standaardspelers.
     */
 
     const freshPlayers =
@@ -344,15 +373,18 @@ function loadPlayers() {
             JSON.stringify(DEFAULT_PLAYERS)
         );
 
+
     localStorage.setItem(
         "jo9_players",
         JSON.stringify(freshPlayers)
     );
 
+
     localStorage.setItem(
         "jo9_storage_version",
         String(STORAGE_VERSION)
     );
+
 
     return freshPlayers;
 }
@@ -364,9 +396,55 @@ function savePlayers() {
         JSON.stringify(players)
     );
 
+
     localStorage.setItem(
         "jo9_storage_version",
         String(STORAGE_VERSION)
+    );
+}
+    /* =====================================================
+   WEDSTRIJDHISTORIE
+   ===================================================== */
+
+function loadMatches() {
+
+    const saved =
+        localStorage.getItem("jo9_matches");
+
+
+    if (!saved) {
+        return [];
+    }
+
+
+    try {
+
+        const parsed =
+            JSON.parse(saved);
+
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch (error) {
+
+        console.error(
+            "Kon wedstrijdhistorie niet laden:",
+            error
+        );
+
+
+        return [];
+    }
+}
+
+
+function saveMatches() {
+
+    localStorage.setItem(
+        "jo9_matches",
+        JSON.stringify(matches)
     );
 }
 

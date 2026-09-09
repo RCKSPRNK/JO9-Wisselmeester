@@ -433,143 +433,56 @@ function findIdealPlayCounts(present) {
     const totalPlaySlots = 6 * 4;
 
     /*
-    We testen alle mogelijke aantallen speelrondes.
+    Verdeel de speelrondes eerst zo gelijk mogelijk
+    binnen deze wedstrijd.
 
-    Iedere speler kan tussen 0 en 4 rondes spelen.
-    Het totaal moet exact 24 zijn.
+    8 spelers:
+    iedereen 3 rondes.
+
+    7 spelers:
+    3 spelers 4 rondes
+    4 spelers 3 rondes.
+
+    9 spelers:
+    6 spelers 3 rondes
+    3 spelers 2 rondes.
     */
 
-    let best = null;
+    const minimumRounds =
+        Math.floor(totalPlaySlots / n);
 
-    function search(index, remaining, counts) {
+    const extraRounds =
+        totalPlaySlots % n;
 
-        if (index === n) {
+    const counts =
+        Array(n).fill(minimumRounds);
 
-            if (remaining !== 0) {
-                return;
-            }
+    /*
+    De extra rondes gaan naar de spelers met de
+    laagste historische speeltijd.
+    */
 
-            let finalTotals = [];
+    const ranking =
+        present
+            .map((player, index) => ({
+                index,
+                history: player.history
+            }))
+            .sort((a, b) => {
 
-            for (let i = 0; i < n; i++) {
+                if (a.history !== b.history) {
+                    return a.history - b.history;
+                }
 
-                finalTotals.push(
-                    present[i].history +
-                    counts[i] * 10
-                );
-            }
-
-            const average =
-                finalTotals.reduce((a,b) => a+b, 0) / n;
-
-            /*
-            Hoofddoel:
-
-            minimale afwijking van de gemiddelde totale
-            speeltijd.
-
-            */
-
-            let variance = 0;
-
-            finalTotals.forEach(total => {
-                variance += Math.pow(total - average, 2);
+                return a.index - b.index;
             });
 
-            /*
-            Kleine extra voorkeur:
-
-            Als twee oplossingen even eerlijk zijn,
-            geven we iets meer voorkeur aan spelers die
-            historisch minder minuten hebben.
-            */
-
-            const score = variance;
-
-            if (!best || score < best.score) {
-
-                best = {
-                    score,
-                    counts: [...counts]
-                };
-            }
-
-            return;
-        }
-
-        /*
-        Pruning:
-        er moeten genoeg speelplaatsen overblijven.
-        */
-
-        const playersLeft = n - index - 1;
-
-        for (
-            let count = 0;
-            count <= 4;
-            count++
-        ) {
-
-            const newRemaining = remaining - count;
-
-            if (newRemaining < 0) {
-                continue;
-            }
-
-            if (
-                newRemaining >
-                playersLeft * 4
-            ) {
-                continue;
-            }
-
-            counts.push(count);
-
-            search(
-                index + 1,
-                newRemaining,
-                counts
-            );
-
-            counts.pop();
-        }
+    for (let i = 0; i < extraRounds; i++) {
+        counts[ranking[i].index]++;
     }
 
-    search(
-        0,
-        totalPlaySlots,
-        []
-    );
-
-    return best.counts;
+    return counts;
 }
-
-
-/*
-===========================================================
-WISSELVOLGORDE
-===========================================================
-
-Nu weten we hoeveel rondes iedere speler moet spelen.
-
-Bijvoorbeeld:
-
-Lucas  3
-Boaz   3
-Mace   4
-Levi   4
-
-We moeten dit vervolgens over 4 rondes verdelen.
-
-Daarbij proberen we:
-
-- niemand twee keer achter elkaar op de bank
-- bankbeurten zo gelijkmatig mogelijk verspreiden
-- dezelfde bankcombinaties vermijden
-===========================================================
-*/
-
-
 function buildSchedule(present, playCounts) {
 
     const n = present.length;

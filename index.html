@@ -334,6 +334,21 @@ button:hover {
         <tbody id="minutesTable"></tbody>
     </table>
 </div>
+    <div class="card">
+    <h2>⚙️ Beheer</h2>
+
+    <p class="small">
+        Klaar voor een nieuw seizoen? Zet alle speeltijd,
+        voordeelgeschiedenis en wedstrijdgegevens terug naar nul.
+    </p>
+
+    <button
+        class="secondary"
+        onclick="resetSeason()"
+    >
+        🔄 SEIZOEN RESETTEN
+    </button>
+</div>
 
 </div>
 
@@ -1511,6 +1526,88 @@ function renderMinutes() {
 
             tbody.appendChild(row);
         });
+}
+    /* =========================================================
+   SEIZOENSRESET
+   ========================================================= */
+
+function resetSeason() {
+
+    const confirmed =
+        confirm(
+            "⚠️ Weet je het zeker?\n\n" +
+            "Alle historische speeltijd, " +
+            "voordeelgeschiedenis en wedstrijdgegevens " +
+            "worden verwijderd.\n\n" +
+            "De spelers blijven behouden.\n\n" +
+            "Deze actie kan niet ongedaan worden gemaakt."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    /*
+    Zet de speeltijd en voordeelgeschiedenis
+    van iedere speler terug naar nul.
+    */
+
+    players.forEach(player => {
+
+        player.history = 0;
+
+        player.advantageHistory = [];
+
+    });
+
+    /*
+    Verwijder alle opgeslagen wedstrijden.
+    */
+
+    matches = [];
+
+    /*
+    Zet het wedstrijdnummer terug naar 0.
+    */
+
+    localStorage.removeItem(
+        "jo9_matches"
+    );
+
+    localStorage.removeItem(
+        "jo9_match_counter"
+    );
+
+    /*
+    Sla de schone spelersgegevens op.
+    */
+
+    savePlayers();
+
+    /*
+    Werk het scherm direct bij.
+    */
+
+    renderPlayers();
+
+    /*
+    Zorg ervoor dat er geen oud wisselschema
+    meer actief is.
+    */
+
+    currentSchedule = null;
+
+    document.getElementById(
+        "scheduleSection"
+    ).style.display = "none";
+
+    alert(
+        "🔄 Het seizoen is gereset!\n\n" +
+        "Alle speeltijden, voordeelgeschiedenis " +
+        "en wedstrijden zijn gewist.\n\n" +
+        "De spelers zijn behouden."
+    );
+
 }
 
 

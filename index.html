@@ -470,19 +470,13 @@ function findIdealPlayCounts(present) {
     const totalPlaySlots = 6 * 4;
 
     /*
-    Verdeel de speelrondes eerst zo gelijk mogelijk
-    binnen deze wedstrijd.
+    Basisverdeling:
+    iedereen krijgt eerst evenveel rondes.
 
-    8 spelers:
-    iedereen 3 rondes.
-
-    7 spelers:
-    3 spelers 4 rondes
-    4 spelers 3 rondes.
-
-    9 spelers:
-    6 spelers 3 rondes
-    3 spelers 2 rondes.
+    8 spelers = 3 rondes per speler
+    7 spelers = 3 rondes per speler + 3 extra rondes
+    6 spelers = 4 rondes per speler
+    9 spelers = 2 rondes per speler + 6 extra rondes
     */
 
     const minimumRounds =
@@ -494,29 +488,88 @@ function findIdealPlayCounts(present) {
     const counts =
         Array(n).fill(minimumRounds);
 
+
     /*
-    De extra rondes gaan naar de spelers met de
-    laagste historische speeltijd.
+    De extra rondes noemen we "voordeelrondes".
+
+    We kijken NIET meer naar de totale speeltijd.
+
+    We kijken alleen naar eerdere wedstrijden
+    met hetzelfde aantal aanwezige spelers.
+
+    Voorbeeld:
+
+    Vorige wedstrijd met 7:
+    Mace +10
+    Levi +10
+    Lucas +10
+
+    Volgende wedstrijd met 7:
+    deze drie krijgen niet automatisch opnieuw voordeel.
+    Andere spelers komen eerst aan de beurt.
     */
 
-    const ranking =
-        present
-            .map((player, index) => ({
+
+    const ranking = present
+        .map((player, index) => {
+
+            const advantageHistory =
+                player.advantageHistory || [];
+
+            const relevantAdvantages =
+                advantageHistory.filter(
+                    item => item.playerCount === n
+                );
+
+            const advantageCount =
+                relevantAdvantages.length;
+
+            const lastAdvantage =
+                relevantAdvantages.length > 0
+                    ? Math.max(
+                        ...relevantAdvantages.map(
+                            item => item.matchNumber
+                        )
+                    )
+                    : 0;
+
+            return {
                 index,
-                history: player.history
-            }))
-            .sort((a, b) => {
+                advantageCount,
+                lastAdvantage,
+                history: player.history || 0
+            };
+        })
 
-                if (a.history !== b.history) {
-                    return a.history - b.history;
-                }
+        .sort((a, b) => {
 
-                return a.index - b.index;
-            });
+            // Eerst degene met het minste voordeel
+            if (a.advantageCount !== b.advantageCount) {
+                return a.advantageCount - b.advantageCount;
+            }
+
+            // Daarna degene die het langst geleden voordeel had
+            if (a.lastAdvantage !== b.lastAdvantage) {
+                return a.lastAdvantage - b.lastAdvantage;
+            }
+
+            // Totale speeltijd alleen als laatste tiebreaker
+            if (a.history !== b.history) {
+                return a.history - b.history;
+            }
+
+            return a.index - b.index;
+        });
+
+
+    /*
+    Geef de extra rondes aan de eerlijkst geschikte spelers.
+    */
 
     for (let i = 0; i < extraRounds; i++) {
         counts[ranking[i].index]++;
     }
+
 
     return counts;
 }
@@ -953,10 +1006,52 @@ function finishMatch() {
         return;
     }
 
+
     const {
         present,
         playCounts
     } = currentSchedule;
+
+
+    /*
+    Bepaal hoeveel speelrondes iedere speler
+    minimaal krijgt in deze wedstrijd.
+
+    8 spelers = 3 rondes
+    7 spelers = 3 rondes + 3 extra
+    6 spelers = 4 rondes
+    9 spelers = 2 rondes + 6 extra
+    */
+
+    const n = present.length;
+
+    const totalPlaySlots = 6 * 4;
+
+    const minimumRounds =
+        Math.floor(totalPlaySlots / n);
+
+
+    /*
+    Houd een wedstrijdnummer bij.
+    */
+
+    let matchNumber =
+        Number(
+            localStorage.getItem("jo9_match_counter") || 0
+        );
+
+    matchNumber++;
+
+    localStorage.setItem(
+        "jo9_match_counter",
+        String(matchNumber)
+    );
+
+
+    /*
+    Werk voor iedere aanwezige speler
+    de totale speeltijd bij.
+    */
 
     present.forEach(
         (player, index) => {
@@ -964,28 +1059,91 @@ function finishMatch() {
             const minutes =
                 playCounts[index] * 10;
 
+
             const stored =
                 players.find(
                     p => p.id === player.id
                 );
 
+
             if (stored) {
-                stored.history += minutes;
+
+                /*
+                Voeg de gespeelde minuten toe.
+                */
+
+                stored.history =
+                    (stored.history || 0) + minutes;
+
+
+                /*
+                Zorg ervoor dat iedere speler
+                een voordeelhistorie heeft.
+                */
+
+                if (!Array.isArray(stored.advantageHistory)) {
+                    stored.advantageHistory = [];
+                }
+
+
+                /*
+                Heeft deze speler meer rondes gespeeld
+                dan het normale minimum?
+
+                Dan heeft hij/zij deze wedstrijd
+                een voordeel van 10 minuten gekregen.
+                */
+
+                if (playCounts[index] > minimumRounds) {
+
+                    stored.advantageHistory.push({
+                        matchNumber: matchNumber,
+                        playerCount: n
+                    });
+
+                }
+
             }
+
         }
     );
 
+
+    /*
+    Sla alles op.
+    */
+
     savePlayers();
 
+
+    /*
+    Geef de gebruiker een bevestiging.
+    */
+
     alert(
-        "Wedstrijd opgeslagen! De speeltijd is bijgewerkt."
+        "Wedstrijd opgeslagen! De speeltijd en voordeelverdeling zijn bijgewerkt."
     );
 
+
+    /*
+    Werk de speeltijd op het scherm bij.
+    */
+
     renderPlayers();
+
+
+    /*
+    Verberg het wedstrijdschema.
+    */
 
     document.getElementById(
         "scheduleSection"
     ).style.display = "none";
+
+
+    /*
+    Maak het huidige schema leeg.
+    */
 
     currentSchedule = null;
 }

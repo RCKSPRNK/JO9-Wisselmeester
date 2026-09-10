@@ -1672,6 +1672,7 @@ function toggleSeasonReset() {
 /* =========================================================
    SPELERS BEHEREN
    ========================================================= */
+
 function renderPlayerManagement() {
 
     const container =
@@ -1686,7 +1687,9 @@ function renderPlayerManagement() {
     players.forEach(player => {
 
         const playerRow =
-            document.createElement("div");
+            document.createElement("button");
+
+        playerRow.type = "button";
 
         playerRow.className =
             "manage-player-row";
@@ -1695,10 +1698,15 @@ function renderPlayerManagement() {
             <strong>${player.name}</strong>
         `;
 
+        playerRow.onclick = function() {
+            selectPlayerForManagement(player.id);
+        };
+
         container.appendChild(playerRow);
 
     });
 }
+
 function showAddPlayerForm() {
 
     const container =
@@ -1742,7 +1750,88 @@ function showAddPlayerForm() {
         </div>
     `;
 }
+function selectPlayerForManagement(playerId) {
 
+    const player =
+        players.find(player => player.id === playerId);
+
+    if (!player) {
+        return;
+    }
+
+    const container =
+        document.getElementById("managePlayers");
+
+    container.innerHTML = `
+        <div class="selected-player">
+
+            <h3>👤 ${player.name}</h3>
+
+            <p class="small">
+                Speeltijd: ${player.history || 0} minuten
+            </p>
+
+            <button
+                class="secondary"
+                onclick="deletePlayer('${player.id}')"
+            >
+                🗑️ SPELER VERWIJDEREN
+            </button>
+
+            <button
+                class="secondary"
+                onclick="renderPlayerManagement()"
+            >
+                ← TERUG NAAR SPELERS
+            </button>
+
+        </div>
+    `;
+}
+    /* =========================================================
+   SPELER VERWIJDEREN
+   ========================================================= */
+
+function deletePlayer(playerId) {
+
+    const player =
+        players.find(player => player.id === playerId);
+
+    if (!player) {
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "⚠️ Weet je het zeker?\n\n" +
+            player.name +
+            " wordt volledig uit het team verwijderd.\n\n" +
+            "Ook zijn/haar historische speeltijd en voordeelgeschiedenis " +
+            "worden verwijderd.\n\n" +
+            "Deze actie kan niet ongedaan worden gemaakt."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    players =
+        players.filter(
+            player => player.id !== playerId
+        );
+
+    savePlayers();
+
+    renderPlayers();
+
+    renderPlayerManagement();
+
+    alert(
+        "🗑️ " +
+        player.name +
+        " is verwijderd uit het team."
+    );
+}
 /* =========================================================
    NIEUWE SPELER OPSLAAN
    ========================================================= */

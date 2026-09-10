@@ -334,9 +334,32 @@ button:hover {
         <tbody id="minutesTable"></tbody>
     </table>
 </div>
+    <div class="card">
+
+    <h2>5. 🏟️ Wedstrijden</h2>
+
+    <button
+        type="button"
+        class="management-toggle"
+        onclick="toggleMatches()"
+    >
+        <span>🏟️ Wedstrijden</span>
+        <span id="matchesArrow">▶</span>
+    </button>
+
+    <div
+        id="matchesContent"
+        style="display:none;"
+    >
+
+        <div id="matchesList"></div>
+
+    </div>
+
+</div>
   <div class="card">
 
-    <h2>5. ⚙️ Beheer</h2>
+    <h2>6. ⚙️ Beheer</h2>
 
     <button
     type="button"
@@ -1668,7 +1691,33 @@ function toggleSeasonReset() {
     }
 
 }
+function toggleMatches() {
 
+    const content =
+        document.getElementById(
+            "matchesContent"
+        );
+
+    const arrow =
+        document.getElementById(
+            "matchesArrow"
+        );
+
+    if (content.style.display === "none") {
+
+        content.style.display = "block";
+        arrow.textContent = "▼";
+
+        renderMatches();
+
+    } else {
+
+        content.style.display = "none";
+        arrow.textContent = "▶";
+
+    }
+
+}
 
 /* =========================================================
    SPELERS BEHEREN
@@ -1750,6 +1799,68 @@ function showAddPlayerForm() {
 
         </div>
     `;
+}
+function renderMatches() {
+
+    const container =
+        document.getElementById("matchesList");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    if (matches.length === 0) {
+
+        container.innerHTML = `
+            <p class="small">
+                Er zijn nog geen wedstrijden opgeslagen.
+            </p>
+        `;
+
+        return;
+    }
+
+    matches
+        .slice()
+        .reverse()
+        .forEach(match => {
+
+            const matchRow =
+                document.createElement("div");
+
+            matchRow.className =
+                "manage-player-row";
+
+            const location =
+                match.homeAway === "Thuis"
+                    ? "🏠 Thuis"
+                    : "✈️ Uit";
+
+            matchRow.innerHTML = `
+                <strong>
+                    ${match.date || "Onbekende datum"}
+                </strong>
+
+                <br>
+
+                ${location}
+                ${match.opponent
+                    ? " – " + match.opponent
+                    : ""
+                }
+
+                <br>
+
+                <span class="small">
+                    ${match.playerCount} spelers aanwezig
+                </span>
+            `;
+
+            container.appendChild(matchRow);
+
+        });
 }
 function selectPlayerForManagement(playerId) {
 

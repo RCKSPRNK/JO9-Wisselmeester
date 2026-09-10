@@ -948,13 +948,41 @@ function buildSchedule(present, playCounts) {
                 }
             }
 
-            if (!valid) {
-                continue;
-            }
+           if (!valid) {
+    continue;
+}
 
-            /*
-            Voeg bankronde toe.
-            */
+/*
+Verboden wisselcombinaties.
+Deze regels zijn bewust verborgen voor de gebruiker.
+*/
+
+const namesOnBench =
+    combination.map(
+        index => present[index].name
+    );
+
+if (
+    namesOnBench.includes("Divano Morais") &&
+    namesOnBench.includes("Teun Uffelen")
+) {
+    valid = false;
+}
+
+if (
+    namesOnBench.includes("Levi de Bruijn") &&
+    namesOnBench.includes("Lotte Koolmees")
+) {
+    valid = false;
+}
+
+if (!valid) {
+    continue;
+}
+
+/*
+Voeg bankronde toe.
+*/
 
             combination.forEach(index => {
                 benchRounds[index].push(round);

@@ -1523,7 +1523,7 @@ matches.push({
     */
 
     renderPlayers();
-
+renderPlayerManagement();
 
     /*
     Verberg het wedstrijdschema.
@@ -1578,7 +1578,37 @@ function renderMinutes() {
     /* =========================================================
    SPELER TOEVOEGEN
    ========================================================= */
+/* =========================================================
+   SPELERS BEHEREN
+   ========================================================= */
 
+function renderPlayerManagement() {
+
+    const container =
+        document.getElementById("managePlayers");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    players.forEach(player => {
+
+        const playerRow =
+            document.createElement("div");
+
+        playerRow.className =
+            "manage-player-row";
+
+        playerRow.innerHTML = `
+            <strong>${player.name}</strong>
+        `;
+
+        container.appendChild(playerRow);
+
+    });
+}
 function showAddPlayerForm() {
 
     const container =

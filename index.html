@@ -334,7 +334,28 @@ button:hover {
         <tbody id="minutesTable"></tbody>
     </table>
 </div>
-    <div class="card">
+  <div class="card">
+
+    <h2>👥 Spelers beheren</h2>
+
+    <p class="small">
+        Voeg spelers toe of verwijder spelers uit het team.
+    </p>
+
+    <div id="managePlayers"></div>
+
+    <button
+        class="primary"
+        onclick="showAddPlayerForm()"
+    >
+        ➕ SPELER TOEVOEGEN
+    </button>
+
+</div>
+
+
+<div class="card">
+
     <h2>⚙️ Beheer</h2>
 
     <p class="small">
@@ -348,6 +369,26 @@ button:hover {
     >
         🔄 SEIZOEN RESETTEN
     </button>
+
+</div>
+
+<div class="card">
+
+    <h2>👥 Spelers beheren</h2>
+
+    <p class="small">
+        Voeg spelers toe of verwijder spelers uit het team.
+    </p>
+
+    <div id="managePlayers"></div>
+
+    <button
+        class="primary"
+        onclick="showAddPlayerForm()"
+    >
+        ➕ SPELER TOEVOEGEN
+    </button>
+
 </div>
 
 </div>
@@ -1554,6 +1595,53 @@ function renderMinutes() {
 
             tbody.appendChild(row);
         });
+}
+    /* =========================================================
+   SPELER TOEVOEGEN
+   ========================================================= */
+
+function showAddPlayerForm() {
+
+    const container =
+        document.getElementById("managePlayers");
+
+    container.innerHTML = `
+        <div class="add-player-form">
+
+            <label>
+                Voornaam
+                <input
+                    type="text"
+                    id="newPlayerFirstName"
+                    placeholder="Voornaam"
+                >
+            </label>
+
+            <label>
+                Achternaam
+                <input
+                    type="text"
+                    id="newPlayerLastName"
+                    placeholder="Achternaam"
+                >
+            </label>
+
+            <button
+                class="primary"
+                onclick="addPlayer()"
+            >
+                ✅ TOEVOEGEN
+            </button>
+
+            <button
+                class="secondary"
+                onclick="renderPlayerManagement()"
+            >
+                ANNULEREN
+            </button>
+
+        </div>
+    `;
 }
     /* =========================================================
    SEIZOENSRESET

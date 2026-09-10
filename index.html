@@ -336,40 +336,63 @@ button:hover {
 </div>
   <div class="card">
 
-
-    <h2>👥 Spelers beheren</h2>
-
-    <p class="small">
-        Voeg spelers toe of verwijder spelers uit het team.
-    </p>
-
-    <div id="managePlayers"></div>
-
-    <button
-        class="primary"
-        onclick="showAddPlayerForm()"
-    >
-        ➕ SPELER TOEVOEGEN
-    </button>
-
-</div>
-<div class="card">
-
     <h2>⚙️ Beheer</h2>
 
-    <p class="small">
-        Klaar voor een nieuw seizoen? Zet alle speeltijd,
-        voordeelgeschiedenis en wedstrijdgegevens terug naar nul.
-    </p>
-
-    <button
-        class="secondary"
-        onclick="resetSeason()"
+    <div
+        class="management-toggle"
+        onclick="togglePlayerManagement()"
     >
-        🔄 SEIZOEN RESETTEN
-    </button>
+        <span>👥 Spelers beheren</span>
+        <span id="playerManagementArrow">▶</span>
+    </div>
 
-</div>
+    <div
+        id="playerManagementContent"
+        style="display:none;"
+    >
+
+        <p class="small">
+            Voeg spelers toe of verwijder spelers uit het team.
+        </p>
+
+        <div id="managePlayers"></div>
+
+        <button
+            class="primary"
+            onclick="showAddPlayerForm()"
+        >
+            ➕ SPELER TOEVOEGEN
+        </button>
+
+    </div>
+
+    <div
+        class="management-toggle"
+        onclick="toggleSeasonReset()"
+    >
+        <span>🔄 Seizoen resetten</span>
+        <span id="seasonResetArrow">▶</span>
+    </div>
+
+    <div
+        id="seasonResetContent"
+        style="display:none;"
+    >
+
+        <p class="small">
+            Klaar voor een nieuw seizoen? Zet alle speeltijd,
+            voordeelgeschiedenis en wedstrijdgegevens terug naar nul.
+        </p>
+
+        <button
+            class="secondary"
+            onclick="resetSeason()"
+        >
+            🔄 SEIZOEN RESETTEN
+        </button>
+
+    </div>
+
 </div>
 
 <script>
@@ -1581,7 +1604,73 @@ function renderMinutes() {
 /* =========================================================
    SPELERS BEHEREN
    ========================================================= */
+/* =========================================================
+   BEHEER MENU UITKLAPPEN
+   ========================================================= */
 
+function togglePlayerManagement() {
+
+    const content =
+        document.getElementById(
+            "playerManagementContent"
+        );
+
+    const arrow =
+        document.getElementById(
+            "playerManagementArrow"
+        );
+
+    if (content.style.display === "none") {
+
+        content.style.display = "block";
+        arrow.textContent = "▼";
+
+        renderPlayerManagement();
+
+    } else {
+
+        content.style.display = "none";
+        arrow.textContent = "▶";
+
+    }
+
+}
+
+
+/* =========================================================
+   SEIZOEN RESET UITKLAPPEN
+   ========================================================= */
+
+function toggleSeasonReset() {
+
+    const content =
+        document.getElementById(
+            "seasonResetContent"
+        );
+
+    const arrow =
+        document.getElementById(
+            "seasonResetArrow"
+        );
+
+    if (content.style.display === "none") {
+
+        content.style.display = "block";
+        arrow.textContent = "▼";
+
+    } else {
+
+        content.style.display = "none";
+        arrow.textContent = "▶";
+
+    }
+
+}
+
+
+/* =========================================================
+   SPELERS BEHEREN
+   ========================================================= */
 function renderPlayerManagement() {
 
     const container =

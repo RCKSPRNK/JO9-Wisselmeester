@@ -1643,6 +1643,63 @@ function showAddPlayerForm() {
         </div>
     `;
 }
+
+/* =========================================================
+   NIEUWE SPELER OPSLAAN
+   ========================================================= */
+
+function addPlayer() {
+
+    const firstName =
+        document
+            .getElementById("newPlayerFirstName")
+            .value
+            .trim();
+
+    const lastName =
+        document
+            .getElementById("newPlayerLastName")
+            .value
+            .trim();
+
+    if (!firstName || !lastName) {
+
+        alert(
+            "Vul zowel de voornaam als achternaam in."
+        );
+
+        return;
+    }
+
+    const newPlayer = {
+
+        id:
+            Date.now().toString(),
+
+        name:
+            firstName + " " + lastName,
+
+        history: 0,
+
+        advantageHistory: []
+
+    };
+
+    players.push(newPlayer);
+
+    savePlayers();
+
+    renderPlayers();
+
+    renderPlayerManagement();
+
+    alert(
+        "✅ " +
+        newPlayer.name +
+        " is toegevoegd aan het team!"
+    );
+}
+
     /* =========================================================
    SEIZOENSRESET
    ========================================================= */

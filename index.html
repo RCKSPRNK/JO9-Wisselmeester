@@ -1991,11 +1991,6 @@ function renderMatches() {
                 showMatchDetails(match.matchNumber);
             };
 
-            const location =
-                match.homeAway === "Thuis"
-                    ? "🏠 Thuis"
-                    : "✈️ Uit";
-
             let formattedDate =
                 match.date || "Onbekende datum";
 
@@ -2020,24 +2015,10 @@ function renderMatches() {
             matchRow.innerHTML = `
 
                 <div class="match-date">
-
-                    <span>
-                        📅 ${formattedDate}
-                    </span>
-
-                    ${
-                        match.time
-                            ? `<span>🕐 ${match.time}</span>`
-                            : ""
-                    }
-
+                    📅 ${formattedDate}
                 </div>
 
                 <div class="match-info">
-
-                    <span class="match-location">
-                        ${location}
-                    </span>
 
                     <strong class="match-opponent">
                         ${match.opponent || "Onbekende tegenstander"}

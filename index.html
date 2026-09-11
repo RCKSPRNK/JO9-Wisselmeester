@@ -1833,6 +1833,10 @@ function renderMatches() {
             matchRow.className =
                 "manage-player-row";
 
+matchRow.onclick = function() {
+    showMatchDetails(match.matchNumber);
+};
+
             const location =
                 match.homeAway === "Thuis"
                     ? "🏠 Thuis"
@@ -1862,6 +1866,81 @@ function renderMatches() {
 
         });
 }
+
+function showMatchDetails(matchNumber) {
+
+    const match =
+        matches.find(
+            match => match.matchNumber === matchNumber
+        );
+
+    if (!match) {
+        return;
+    }
+
+    const container =
+        document.getElementById("matchesList");
+
+    if (!container) {
+        return;
+    }
+
+    const location =
+        match.homeAway === "Thuis"
+            ? "🏠 Thuis"
+            : "✈️ Uit";
+
+    container.innerHTML = `
+        <div class="selected-player">
+
+            <h3>
+                ${match.date || "Onbekende datum"}
+                ${match.opponent
+                    ? " – " + match.opponent
+                    : ""
+                }
+            </h3>
+
+            <p>
+                ${location}
+            </p>
+
+            <p>
+                👥 ${match.playerCount} spelers aanwezig
+            </p>
+
+            <h4>⏱️ Speeltijd</h4>
+
+            <div id="matchPlayerDetails"></div>
+
+            <button
+                class="secondary"
+                onclick="renderMatches()"
+            >
+                ← TERUG NAAR WEDSTRIJDEN
+            </button>
+
+        </div>
+    `;
+
+    const playerDetails =
+        document.getElementById("matchPlayerDetails");
+
+    match.players.forEach(player => {
+
+        const row =
+            document.createElement("p");
+
+        row.innerHTML = `
+            <strong>${player.name}</strong>
+            – ${player.minutes} minuten
+        `;
+
+        playerDetails.appendChild(row);
+
+    });
+}
+    
 function selectPlayerForManagement(playerId) {
 
     const player =

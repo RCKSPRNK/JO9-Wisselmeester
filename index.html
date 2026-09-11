@@ -2396,5 +2396,92 @@ renderPlayers();
 
 </script>
 
+<script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+    import {
+        initializeAppCheck,
+        ReCaptchaEnterpriseProvider
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app-check.js";
+
+
+    const firebaseConfig = {
+
+        apiKey: "AIzaSyBr10MJwdm3tR-Kc-ks2tLlGb0_XzkM6kk",
+
+        authDomain: "jo9-wisselmeester.firebaseapp.com",
+
+        projectId: "jo9-wisselmeester",
+
+        storageBucket: "jo9-wisselmeester.firebasestorage.app",
+
+        messagingSenderId: "757290271996",
+
+        appId: "1:757290271996:web:a74bcbd439cd3eb26dc379",
+
+        databaseURL: "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
+
+    };
+
+
+    // Firebase starten
+    const app = initializeApp(firebaseConfig);
+
+
+    // App Check starten
+    const appCheck = initializeAppCheck(app, {
+
+        provider:
+            new ReCaptchaEnterpriseProvider(
+                "6LfuH7YtAAAAAIMq4wcRiAZdCuZlti4Ot6MQDNXO"
+            ),
+
+        isTokenAutoRefreshEnabled: true
+
+    });
+
+
+    // Authenticatie starten
+    const auth = getAuth(app);
+
+
+    // Realtime Database starten
+    const db = getDatabase(
+        app,
+        "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
+    );
+
+
+    // Anonieme gebruiker aanmelden
+    signInAnonymously(auth)
+        .then(() => {
+
+            console.log("✅ Firebase anonieme gebruiker aangemeld.");
+
+        })
+        .catch(error => {
+
+            console.error(
+                "❌ Firebase authenticatie mislukt:",
+                error
+            );
+
+        });
+
+
+    // Firebase beschikbaar maken voor onze bestaande app
+    window.jo9Firebase = {
+
+        app: app,
+        appCheck: appCheck,
+        auth: auth,
+        db: db
+
+    };
+
+</script>
+
 </body>
 </html>

@@ -1689,23 +1689,39 @@ function renderMinutes() {
     players
         .slice()
         .sort(
-            (a,b) =>
-                a.history - b.history
+            (a, b) =>
+                b.history - a.history
         )
         .forEach(player => {
+
+            const presentCount =
+                matches.filter(match =>
+                    Array.isArray(match.presentPlayerIds) &&
+                    match.presentPlayerIds.includes(player.id)
+                ).length;
+
+            const absentCount =
+                matches.filter(match =>
+                    Array.isArray(match.presentPlayerIds) &&
+                    !match.presentPlayerIds.includes(player.id)
+                ).length;
 
             const row =
                 document.createElement("tr");
 
             row.innerHTML = `
                 <td>${player.name}</td>
-                <td>-</td>
-                <td><strong>${player.history} min</strong></td>
+                <td>${presentCount}×</td>
+                <td>${absentCount}×</td>
+                <td>
+                    <strong>${player.history} min</strong>
+                </td>
             `;
 
             tbody.appendChild(row);
         });
 }
+    
     /* =========================================================
    SPELER TOEVOEGEN
    ========================================================= */

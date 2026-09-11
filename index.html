@@ -2012,6 +2012,15 @@ function showMatchDetails(matchNumber) {
             <h4>⏱️ Speeltijd</h4>
 
             <div id="matchPlayerDetails"></div>
+            ${
+    match.playerCount === 7 && match.advantagePlayerIds?.length
+        ? `
+            <h4>⭐ Voordeel deze wedstrijd</h4>
+
+            <div id="matchAdvantageDetails"></div>
+          `
+        : ""
+}
 
             <button
                 class="secondary"
@@ -2039,6 +2048,46 @@ function showMatchDetails(matchNumber) {
         playerDetails.appendChild(row);
 
     });
+        if (
+        match.playerCount === 7 &&
+        match.advantagePlayerIds?.length
+    ) {
+
+        const advantageDetails =
+            document.getElementById(
+                "matchAdvantageDetails"
+            );
+
+        if (advantageDetails) {
+
+            match.advantagePlayerIds.forEach(
+                playerId => {
+
+                    const player =
+                        match.players.find(
+                            player =>
+                                player.playerId === playerId
+                        );
+
+                    if (player) {
+
+                        const row =
+                            document.createElement("p");
+
+                        row.innerHTML = `
+                            ⭐ <strong>${player.name}</strong>
+                        `;
+
+                        advantageDetails.appendChild(row);
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
 }
     
 function selectPlayerForManagement(playerId) {

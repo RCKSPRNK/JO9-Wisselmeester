@@ -375,24 +375,43 @@ button:hover {
 </div>
 
 <div class="card">
-    <h2>4. Historische speeltijd</h2>
 
-    <p class="small">
-        Deze stand wordt gebruikt om volgende wedstrijden eerlijker te verdelen.
-    </p>
+    <h2>4. 📊 Historische speeltijd</h2>
 
-    <table class="minutes-table">
-        <thead>
-            <tr>
-                <th>Speler</th>
-                <th>Vandaag</th>
-                <th>Totaal</th>
-            </tr>
-        </thead>
-        <tbody id="minutesTable"></tbody>
-    </table>
+    <button
+        type="button"
+        class="management-toggle"
+        onclick="toggleHistoricalMinutes()"
+    >
+        <span>📊 Historische speeltijd</span>
+        <span id="historicalMinutesArrow">▶</span>
+    </button>
+
+    <div
+        id="historicalMinutesContent"
+        style="display:none;"
+    >
+
+        <p class="small">
+            Deze stand wordt gebruikt om volgende wedstrijden eerlijker te verdelen.
+        </p>
+
+        <table class="minutes-table">
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Vandaag</th>
+                    <th>Totaal</th>
+                </tr>
+            </thead>
+            <tbody id="minutesTable"></tbody>
+        </table>
+
+    </div>
+
 </div>
-    <div class="card">
+    
+<div class="card">
 
     <h2>5. 🏟️ Wedstrijden</h2>
 
@@ -1341,7 +1360,7 @@ const advantageText = advantagePlayers.length
 document.getElementById(
     "summary"
 ).innerHTML = `
-    <strong>⚽ ${matchHomeAway === "thuis" ? "BBV Barendrecht" : opponent} 
+    <strong>⚽ ${matchHomeAway === "thuis" ? "BVV Barendrecht" : opponent} 
     ${matchHomeAway === "thuis" ? "– " + opponent : "– BBV Barendrecht"}</strong>
     <br>
     📅 ${matchDate} · 🕐 ${matchTime}
@@ -1767,6 +1786,34 @@ function toggleMatches() {
         arrow.textContent = "▼";
 
         renderMatches();
+
+    } else {
+
+        content.style.display = "none";
+        arrow.textContent = "▶";
+
+    }
+
+}
+
+function toggleHistoricalMinutes() {
+
+    const content =
+        document.getElementById(
+            "historicalMinutesContent"
+        );
+
+    const arrow =
+        document.getElementById(
+            "historicalMinutesArrow"
+        );
+
+    if (content.style.display === "none") {
+
+        content.style.display = "block";
+        arrow.textContent = "▼";
+
+        renderPlayers();
 
     } else {
 

@@ -6,6 +6,64 @@
 <title>JO9 Wisselmeester</title>
 
 <style>
+
+    .match-row {
+    width: 100%;
+    border: 1px solid #d8e0e8;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-family: inherit;
+    color: #17212b;
+}
+
+.match-row:hover {
+    background: #f5f7fa;
+}
+
+.match-date {
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 15px;
+}
+
+.match-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.match-location {
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+.match-opponent {
+    font-size: 17px;
+}
+
+.match-players {
+    font-size: 14px;
+    color: #617080;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.match-arrow {
+    font-size: 28px;
+    font-weight: bold;
+    color: #617080;
+}
+    
 * {
     box-sizing: border-box;
 }
@@ -1800,6 +1858,7 @@ function showAddPlayerForm() {
         </div>
     `;
 }
+
 function renderMatches() {
 
     const container =
@@ -1828,45 +1887,86 @@ function renderMatches() {
         .forEach(match => {
 
             const matchRow =
-                document.createElement("div");
+                document.createElement("button");
+
+            matchRow.type = "button";
 
             matchRow.className =
-                "manage-player-row";
+                "match-row";
 
-matchRow.onclick = function() {
-    showMatchDetails(match.matchNumber);
-};
+            matchRow.onclick = function() {
+                showMatchDetails(match.matchNumber);
+            };
 
             const location =
                 match.homeAway === "Thuis"
                     ? "🏠 Thuis"
                     : "✈️ Uit";
 
-            matchRow.innerHTML = `
-                <strong>
-                    ${match.date || "Onbekende datum"}
-                </strong>
+            let formattedDate =
+                match.date || "Onbekende datum";
 
-                <br>
+            if (match.date) {
 
-                ${location}
-                ${match.opponent
-                    ? " – " + match.opponent
-                    : ""
+                const parts =
+                    match.date.split("-");
+
+                if (parts.length === 3) {
+
+                    formattedDate =
+                        parts[2] +
+                        "-" +
+                        parts[1] +
+                        "-" +
+                        parts[0];
+
                 }
 
-                <br>
+            }
 
-                <span class="small">
-                    ${match.playerCount} spelers aanwezig
-                </span>
+            matchRow.innerHTML = `
+
+                <div class="match-date">
+
+                    <span>
+                        📅 ${formattedDate}
+                    </span>
+
+                    ${
+                        match.time
+                            ? `<span>🕐 ${match.time}</span>`
+                            : ""
+                    }
+
+                </div>
+
+                <div class="match-info">
+
+                    <span class="match-location">
+                        ${location}
+                    </span>
+
+                    <strong class="match-opponent">
+                        ${match.opponent || "Onbekende tegenstander"}
+                    </strong>
+
+                    <span class="match-players">
+                        👥 ${match.playerCount} spelers aanwezig
+                    </span>
+
+                </div>
+
+                <div class="match-arrow">
+                    ›
+                </div>
+
             `;
 
             container.appendChild(matchRow);
 
         });
 }
-
+    
 function showMatchDetails(matchNumber) {
 
     const match =

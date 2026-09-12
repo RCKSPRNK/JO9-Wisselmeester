@@ -2619,6 +2619,13 @@ loadMatchesFromFirebase: loadMatchesFromFirebase
 
             }
 
+            
+                    // Wedstrijden vanuit Firebase laden
+        matches =
+            await loadMatchesFromFirebase();
+
+        renderMatches();
+
         })
         .catch(error => {
 

@@ -1658,7 +1658,12 @@ matches.push({
             advantageIds
 
     });
-
+    if (
+        window.jo9Firebase &&
+        window.jo9Firebase.saveMatchesToFirebase
+    ) {
+        window.jo9Firebase.saveMatchesToFirebase(matches);
+    }
 
     localStorage.setItem(
         "jo9_matches",

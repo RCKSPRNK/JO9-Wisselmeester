@@ -2408,14 +2408,26 @@ renderPlayers();
 
 <script type="module">
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+        initializeApp
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+
+
+    import {
+        getAuth,
+        signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+
     import {
         getDatabase,
         ref,
         get,
-        set
+        set,
+        onValue
     } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+
     import {
         initializeAppCheck,
         ReCaptchaEnterpriseProvider
@@ -2424,17 +2436,23 @@ renderPlayers();
 
     const firebaseConfig = {
 
-        apiKey: "AIzaSyBr10MJwdm3tR-Kc-ks2tLIGbOX_zkM6kk",
+        apiKey:
+            "AIzaSyBr10MJwdm3tR-Kc-ks2tLIGbOX_zkM6kk",
 
-        authDomain: "jo9-wisselmeester.firebaseapp.com",
+        authDomain:
+            "jo9-wisselmeester.firebaseapp.com",
 
-        projectId: "jo9-wisselmeester",
+        projectId:
+            "jo9-wisselmeester",
 
-        storageBucket: "jo9-wisselmeester.firebasestorage.app",
+        storageBucket:
+            "jo9-wisselmeester.firebasestorage.app",
 
-        messagingSenderId: "757290271996",
+        messagingSenderId:
+            "757290271996",
 
-        appId: "1:757290271996:web:a74bcbd439cd3eb26dc379",
+        appId:
+            "1:757290271996:web:a74bcbd439cd3eb26dc379",
 
         databaseURL:
             "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
@@ -2442,11 +2460,18 @@ renderPlayers();
     };
 
 
-    // Firebase starten
-    const app = initializeApp(firebaseConfig);
+    // =========================================================
+    // FIREBASE STARTEN
+    // =========================================================
+
+    const app =
+        initializeApp(firebaseConfig);
 
 
-    // App Check starten
+    // =========================================================
+    // APP CHECK STARTEN
+    // =========================================================
+
     initializeAppCheck(app, {
 
         provider:
@@ -2454,23 +2479,35 @@ renderPlayers();
                 "6LfuH7YtAAAAAIMq4wcRiAZdCuZlti40t6MQDNXO"
             ),
 
-        isTokenAutoRefreshEnabled: true
+        isTokenAutoRefreshEnabled:
+            true
 
     });
 
 
-    // Authenticatie starten
-    const auth = getAuth(app);
+    // =========================================================
+    // AUTHENTICATIE STARTEN
+    // =========================================================
+
+    const auth =
+        getAuth(app);
 
 
-    // Realtime Database starten
-        const db = getDatabase(
-        app,
-        firebaseConfig.databaseURL
-    );
+    // =========================================================
+    // REALTIME DATABASE STARTEN
+    // =========================================================
+
+    const db =
+        getDatabase(
+            app,
+            firebaseConfig.databaseURL
+        );
 
 
-    // Spelers opslaan in Firebase
+    // =========================================================
+    // SPELERS OPSLAAN IN FIREBASE
+    // =========================================================
+
     async function savePlayersToFirebase(playerList) {
 
         try {
@@ -2494,7 +2531,12 @@ renderPlayers();
         }
 
     }
-    // Wedstrijden opslaan in Firebase
+
+
+    // =========================================================
+    // WEDSTRIJDEN OPSLAAN IN FIREBASE
+    // =========================================================
+
     async function saveMatchesToFirebase(matchList) {
 
         try {
@@ -2518,64 +2560,135 @@ renderPlayers();
         }
 
     }
-    
-    // Wedstrijden laden vanuit Firebase
-async function loadMatchesFromFirebase() {
 
-    try {
 
-        const matchesRef =
-            ref(db, "team/matches");
+    // =========================================================
+    // WEDSTRIJDEN LADEN VANUIT FIREBASE
+    // =========================================================
 
-        const snapshot =
-            await get(matchesRef);
+    async function loadMatchesFromFirebase() {
 
-        if (!snapshot.exists()) {
+        try {
+
+            const matchesRef =
+                ref(db, "team/matches");
+
+
+            const snapshot =
+                await get(matchesRef);
+
+
+            if (!snapshot.exists()) {
+
+                console.log(
+                    "☁️ Geen wedstrijden gevonden in Firebase."
+                );
+
+                return [];
+
+            }
+
+
+            const firebaseMatches =
+                Object.values(snapshot.val());
+
 
             console.log(
-                "☁️ Geen wedstrijden gevonden in Firebase."
+                "☁️ Wedstrijden vanuit Firebase geladen."
+            );
+
+
+            return firebaseMatches;
+
+        } catch (error) {
+
+            console.error(
+                "❌ Wedstrijden laden vanuit Firebase mislukt:",
+                error
             );
 
             return [];
 
         }
 
-        const firebaseMatches =
-            Object.values(snapshot.val());
+    }
 
-        console.log(
-            "☁️ Wedstrijden vanuit Firebase geladen."
+
+    // =========================================================
+    // WEDSTRIJDEN REALTIME VOLGEN
+    // =========================================================
+
+    function watchMatchesFromFirebase() {
+
+        const matchesRef =
+            ref(db, "team/matches");
+
+
+        onValue(
+            matchesRef,
+            snapshot => {
+
+                if (!snapshot.exists()) {
+
+                    matches = [];
+
+                } else {
+
+                    matches =
+                        Object.values(snapshot.val());
+
+                }
+
+
+                renderMatches();
+
+
+                console.log(
+                    "🔄 Wedstrijden realtime bijgewerkt."
+                );
+
+            }
         );
-
-        return firebaseMatches;
-
-    } catch (error) {
-
-        console.error(
-            "❌ Wedstrijden laden vanuit Firebase mislukt:",
-            error
-        );
-
-        return [];
 
     }
 
-}
 
-    // Firebase beschikbaar maken voor onze bestaande app
-   window.jo9Firebase = {
+    // =========================================================
+    // FIREBASE BESCHIKBAAR MAKEN VOOR DE BESTAANDE APP
+    // =========================================================
 
-    app: app,
-    auth: auth,
-    db: db,
-savePlayersToFirebase: savePlayersToFirebase,
-saveMatchesToFirebase: saveMatchesToFirebase,
-loadMatchesFromFirebase: loadMatchesFromFirebase
+    window.jo9Firebase = {
 
-};
+        app:
+            app,
 
-    // Anonieme gebruiker aanmelden
+        auth:
+            auth,
+
+        db:
+            db,
+
+        savePlayersToFirebase:
+            savePlayersToFirebase,
+
+        saveMatchesToFirebase:
+            saveMatchesToFirebase,
+
+        loadMatchesFromFirebase:
+            loadMatchesFromFirebase,
+
+        watchMatchesFromFirebase:
+            watchMatchesFromFirebase
+
+    };
+
+
+    // =========================================================
+    // ANONIEME GEBRUIKER AANMELDEN
+    // =========================================================
+
     signInAnonymously(auth)
+
         .then(async () => {
 
             console.log(
@@ -2583,16 +2696,19 @@ loadMatchesFromFirebase: loadMatchesFromFirebase
             );
 
 
+            // -------------------------------------------------
+            // SPELERS LADEN
+            // -------------------------------------------------
+
             const playersRef =
                 ref(db, "team/players");
 
 
-            const snapshot =
+            const playersSnapshot =
                 await get(playersRef);
 
 
-            // Firebase heeft nog geen spelers
-            if (!snapshot.exists()) {
+            if (!playersSnapshot.exists()) {
 
                 await set(
                     playersRef,
@@ -2605,9 +2721,10 @@ loadMatchesFromFirebase: loadMatchesFromFirebase
 
             } else {
 
-                // Firebase heeft al spelers
                 players =
-                    Object.values(snapshot.val());
+                    Object.values(
+                        playersSnapshot.val()
+                    );
 
                 savePlayers();
 
@@ -2619,14 +2736,27 @@ loadMatchesFromFirebase: loadMatchesFromFirebase
 
             }
 
-            
-                    // Wedstrijden vanuit Firebase laden
-        matches =
-            await loadMatchesFromFirebase();
 
-        renderMatches();
+            // -------------------------------------------------
+            // WEDSTRIJDEN LADEN
+            // -------------------------------------------------
+
+            matches =
+                await loadMatchesFromFirebase();
+
+
+            renderMatches();
+
+
+            // -------------------------------------------------
+            // REALTIME WEDSTRIJDEN AANZETTEN
+            // -------------------------------------------------
+
+            watchMatchesFromFirebase();
+
 
         })
+
         .catch(error => {
 
             console.error(

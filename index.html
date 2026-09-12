@@ -2491,18 +2491,41 @@ renderPlayers();
         }
 
     }
+    // Wedstrijden opslaan in Firebase
+    async function saveMatchesToFirebase(matchList) {
 
+        try {
+
+            await set(
+                ref(db, "team/matches"),
+                matchList
+            );
+
+            console.log(
+                "☁️ Wedstrijden opgeslagen in Firebase."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "❌ Wedstrijden opslaan in Firebase mislukt:",
+                error
+            );
+
+        }
+
+    }
 
     // Firebase beschikbaar maken voor onze bestaande app
-    window.jo9Firebase = {
+   window.jo9Firebase = {
 
-        app: app,
-        auth: auth,
-        db: db,
-        savePlayersToFirebase: savePlayersToFirebase
+    app: app,
+    auth: auth,
+    db: db,
+    savePlayersToFirebase: savePlayersToFirebase,
+    saveMatchesToFirebase: saveMatchesToFirebase
 
-    };
-
+};
 
     // Anonieme gebruiker aanmelden
     signInAnonymously(auth)

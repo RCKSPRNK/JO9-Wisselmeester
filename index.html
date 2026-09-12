@@ -1616,22 +1616,20 @@ function finishMatch() {
     Sla de volledige wedstrijd op.
     */
 
-    let matches = [];
+try {
 
-    try {
+    const savedMatches =
+        localStorage.getItem("jo9_matches");
 
-        const savedMatches =
-            localStorage.getItem("jo9_matches");
-
-        if (savedMatches) {
-            matches = JSON.parse(savedMatches);
-        }
-
-    } catch (error) {
-
-        matches = [];
-
+    if (savedMatches) {
+        matches = JSON.parse(savedMatches);
     }
+
+} catch (error) {
+
+    matches = [];
+
+}
 
 
 matches.push({

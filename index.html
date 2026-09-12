@@ -2400,7 +2400,12 @@ renderPlayers();
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getDatabase } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+    import {
+        getDatabase,
+        ref,
+        get,
+        set
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
     import {
         initializeAppCheck,
         ReCaptchaEnterpriseProvider
@@ -2409,7 +2414,7 @@ renderPlayers();
 
     const firebaseConfig = {
 
-       apiKey: "AIzaSyBr10MJwdm3tR-Kc-ks2tLIGbOX_zkM6kk",
+        apiKey: "AIzaSyBr10MJwdm3tR-Kc-ks2tLIGbOX_zkM6kk",
 
         authDomain: "jo9-wisselmeester.firebaseapp.com",
 
@@ -2421,7 +2426,8 @@ renderPlayers();
 
         appId: "1:757290271996:web:a74bcbd439cd3eb26dc379",
 
-        databaseURL: "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
+        databaseURL:
+            "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
 
     };
 
@@ -2431,12 +2437,12 @@ renderPlayers();
 
 
     // App Check starten
-    const appCheck = initializeAppCheck(app, {
+    initializeAppCheck(app, {
 
         provider:
             new ReCaptchaEnterpriseProvider(
-    "6LfuH7YtAAAAAIMq4wcRiAZdCuZlti40t6MQDNXO"
-),
+                "6LfuH7YtAAAAAIMq4wcRiAZdCuZlti40t6MQDNXO"
+            ),
 
         isTokenAutoRefreshEnabled: true
 
@@ -2450,38 +2456,74 @@ renderPlayers();
     // Realtime Database starten
     const db = getDatabase(
         app,
-        "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
+        firebaseConfig.databaseURL
     );
+
+
+    // Firebase beschikbaar maken voor onze bestaande app
+    window.jo9Firebase = {
+        app: app,
+        auth: auth,
+        db: db
+    };
 
 
     // Anonieme gebruiker aanmelden
     signInAnonymously(auth)
-        .then(() => {
+        .then(async () => {
 
-            console.log("✅ Firebase anonieme gebruiker aangemeld.");
+            console.log(
+                "✅ Firebase anonieme gebruiker aangemeld."
+            );
+
+
+            const playersRef =
+                ref(db, "team/players");
+
+
+            const snapshot =
+                await get(playersRef);
+
+
+            // Firebase heeft nog geen spelers
+            if (!snapshot.exists()) {
+
+                await set(
+                    playersRef,
+                    players
+                );
+
+                console.log(
+                    "☁️ Huidige spelerslijst naar Firebase gekopieerd."
+                );
+
+            } else {
+
+                // Firebase heeft al spelers
+                players =
+                    Object.values(snapshot.val());
+
+                savePlayers();
+
+                renderPlayers();
+
+                console.log(
+                    "☁️ Spelerslijst vanuit Firebase geladen."
+                );
+
+            }
 
         })
         .catch(error => {
 
             console.error(
-                "❌ Firebase authenticatie mislukt:",
+                "❌ Firebase synchronisatie mislukt:",
                 error
             );
 
         });
 
-
-    // Firebase beschikbaar maken voor onze bestaande app
-    window.jo9Firebase = {
-
-        app: app,
-        appCheck: appCheck,
-        auth: auth,
-        db: db
-
-    };
-
 </script>
-
+    
 </body>
 </html>

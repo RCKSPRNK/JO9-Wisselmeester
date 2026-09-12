@@ -2518,6 +2518,49 @@ renderPlayers();
         }
 
     }
+    
+    // Wedstrijden laden vanuit Firebase
+async function loadMatchesFromFirebase() {
+
+    try {
+
+        const matchesRef =
+            ref(db, "team/matches");
+
+        const snapshot =
+            await get(matchesRef);
+
+        if (!snapshot.exists()) {
+
+            console.log(
+                "☁️ Geen wedstrijden gevonden in Firebase."
+            );
+
+            return [];
+
+        }
+
+        const firebaseMatches =
+            Object.values(snapshot.val());
+
+        console.log(
+            "☁️ Wedstrijden vanuit Firebase geladen."
+        );
+
+        return firebaseMatches;
+
+    } catch (error) {
+
+        console.error(
+            "❌ Wedstrijden laden vanuit Firebase mislukt:",
+            error
+        );
+
+        return [];
+
+    }
+
+}
 
     // Firebase beschikbaar maken voor onze bestaande app
    window.jo9Firebase = {
@@ -2525,8 +2568,9 @@ renderPlayers();
     app: app,
     auth: auth,
     db: db,
-    savePlayersToFirebase: savePlayersToFirebase,
-    saveMatchesToFirebase: saveMatchesToFirebase
+savePlayersToFirebase: savePlayersToFirebase,
+saveMatchesToFirebase: saveMatchesToFirebase,
+loadMatchesFromFirebase: loadMatchesFromFirebase
 
 };
 

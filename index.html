@@ -663,12 +663,19 @@ function savePlayers() {
         JSON.stringify(players)
     );
 
-
     localStorage.setItem(
         "jo9_storage_version",
         String(STORAGE_VERSION)
     );
+
+    if (
+        window.jo9Firebase &&
+        window.jo9Firebase.savePlayersToFirebase
+    ) {
+        window.jo9Firebase.savePlayersToFirebase(players);
+    }
 }
+    
     /* =====================================================
    WEDSTRIJDHISTORIE
    ===================================================== */
@@ -2454,17 +2461,46 @@ renderPlayers();
 
 
     // Realtime Database starten
-    const db = getDatabase(
+        const db = getDatabase(
         app,
         firebaseConfig.databaseURL
     );
 
 
+    // Spelers opslaan in Firebase
+    async function savePlayersToFirebase(playerList) {
+
+        try {
+
+            await set(
+                ref(db, "team/players"),
+                playerList
+            );
+
+            console.log(
+                "☁️ Spelerslijst opgeslagen in Firebase."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "❌ Spelers opslaan in Firebase mislukt:",
+                error
+            );
+
+        }
+
+    }
+
+
     // Firebase beschikbaar maken voor onze bestaande app
     window.jo9Firebase = {
+
         app: app,
         auth: auth,
-        db: db
+        db: db,
+        savePlayersToFirebase: savePlayersToFirebase
+
     };
 
 

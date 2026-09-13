@@ -2657,7 +2657,53 @@ renderPlayers();
         );
 
     }
+// =========================================================
+// SPELERS REALTIME VOLGEN
+// =========================================================
 
+function watchPlayersFromFirebase() {
+
+    const playersRef =
+        ref(db, "team/players");
+
+    onValue(
+        playersRef,
+        snapshot => {
+
+            if (!snapshot.exists()) {
+                return;
+            }
+
+            players =
+                Object.values(
+                    snapshot.val()
+                ).map(player => ({
+                    ...player,
+                    history:
+                        player.history || 0,
+                    advantageHistory:
+                        Array.isArray(player.advantageHistory)
+                            ? player.advantageHistory
+                            : []
+                }));
+
+            localStorage.setItem(
+                "jo9_players",
+                JSON.stringify(players)
+            );
+
+            renderPlayers();
+
+            renderPlayerManagement();
+
+            console.log(
+                "🔄 Spelers realtime bijgewerkt."
+            );
+
+        }
+    );
+
+}
 
     // =========================================================
     // FIREBASE BESCHIKBAAR MAKEN VOOR DE BESTAANDE APP
@@ -2759,6 +2805,7 @@ renderPlayers();
             // -------------------------------------------------
 
             watchMatchesFromFirebase();
+            watchPlayersFromFirebase();
 
 
         })

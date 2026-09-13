@@ -2318,7 +2318,7 @@ function addPlayer() {
    SEIZOENSRESET
    ========================================================= */
 
-function resetSeason() {
+async function resetSeason() {
 
     const confirmed =
         confirm(
@@ -2366,7 +2366,7 @@ function resetSeason() {
         window.jo9Firebase.saveMatchesToFirebase
     ) {
 
-        window.jo9Firebase.saveMatchesToFirebase([]);
+        await window.jo9Firebase.saveMatchesToFirebase([]);
 
     }
 

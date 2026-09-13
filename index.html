@@ -1616,21 +1616,6 @@ function finishMatch() {
     Sla de volledige wedstrijd op.
     */
 
-try {
-
-    const savedMatches =
-        localStorage.getItem("jo9_matches");
-
-    if (savedMatches) {
-        matches = JSON.parse(savedMatches);
-    }
-
-} catch (error) {
-
-    matches = [];
-
-}
-
 
 matches.push({
 
@@ -2336,6 +2321,34 @@ async function resetSeason() {
 
 
     // =========================================================
+    // WEDSTRIJDEN EERST IN FIREBASE WISSEN
+    // =========================================================
+
+    if (
+        window.jo9Firebase &&
+        window.jo9Firebase.saveMatchesToFirebase
+    ) {
+
+        const firebaseReset =
+            await window.jo9Firebase.saveMatchesToFirebase([]);
+
+        if (!firebaseReset) {
+
+            alert(
+                "❌ De seizoensreset is niet uitgevoerd.\n\n" +
+                "De verbinding met Firebase kon de wedstrijdgegevens " +
+                "niet wissen.\n\n" +
+                "Controleer je internetverbinding en probeer het opnieuw."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    // =========================================================
     // SPEELTIJD EN VOORDEELGESCHIEDENIS RESETTEN
     // =========================================================
 
@@ -2353,22 +2366,13 @@ async function resetSeason() {
 
     matches = [];
 
-    localStorage.removeItem("jo9_matches");
-    localStorage.removeItem("jo9_match_counter");
+    localStorage.removeItem(
+        "jo9_matches"
+    );
 
-
-    // =========================================================
-    // WEDSTRIJDEN OOK IN FIREBASE RESETTEN
-    // =========================================================
-
-    if (
-        window.jo9Firebase &&
-        window.jo9Firebase.saveMatchesToFirebase
-    ) {
-
-        await window.jo9Firebase.saveMatchesToFirebase([]);
-
-    }
+    localStorage.removeItem(
+        "jo9_match_counter"
+    );
 
 
     // =========================================================
@@ -2383,7 +2387,9 @@ async function resetSeason() {
     // =========================================================
 
     renderPlayers();
+
     renderPlayerManagement();
+
     renderMatches();
 
     currentSchedule = null;
@@ -2393,6 +2399,10 @@ async function resetSeason() {
         "scheduleSection"
     ).style.display = "none";
 
+
+    // =========================================================
+    // BEVESTIGING
+    // =========================================================
 
     alert(
         "🔄 Het seizoen is gereset!\n\n" +
@@ -2543,29 +2553,33 @@ renderPlayers();
     // WEDSTRIJDEN OPSLAAN IN FIREBASE
     // =========================================================
 
-    async function saveMatchesToFirebase(matchList) {
+async function saveMatchesToFirebase(matchList) {
 
-        try {
+    try {
 
-            await set(
-                ref(db, "team/matches"),
-                matchList
-            );
+        await set(
+            ref(db, "team/matches"),
+            matchList
+        );
 
-            console.log(
-                "☁️ Wedstrijden opgeslagen in Firebase."
-            );
+        console.log(
+            "☁️ Wedstrijden opgeslagen in Firebase."
+        );
 
-        } catch (error) {
+        return true;
 
-            console.error(
-                "❌ Wedstrijden opslaan in Firebase mislukt:",
-                error
-            );
+    } catch (error) {
 
-        }
+        console.error(
+            "❌ Wedstrijden opslaan in Firebase mislukt:",
+            error
+        );
+
+        return false;
 
     }
+
+}
 
 
     // =========================================================
@@ -2624,39 +2638,46 @@ renderPlayers();
     // WEDSTRIJDEN REALTIME VOLGEN
     // =========================================================
 
-    function watchMatchesFromFirebase() {
+   function watchMatchesFromFirebase() {
 
-        const matchesRef =
-            ref(db, "team/matches");
-
-
-        onValue(
-            matchesRef,
-            snapshot => {
-
-                if (!snapshot.exists()) {
-
-                    matches = [];
-
-                } else {
-
-                    matches =
-                        Object.values(snapshot.val());
-
-                }
+    const matchesRef =
+        ref(db, "team/matches");
 
 
-                renderMatches();
+    onValue(
+        matchesRef,
+        snapshot => {
 
+            if (!snapshot.exists()) {
 
-                console.log(
-                    "🔄 Wedstrijden realtime bijgewerkt."
-                );
+                matches = [];
+
+            } else {
+
+                matches =
+                    Object.values(snapshot.val());
 
             }
-        );
 
-    }
+
+            localStorage.setItem(
+                "jo9_matches",
+                JSON.stringify(matches)
+            );
+
+
+            renderMatches();
+
+
+            console.log(
+                "🔄 Wedstrijden realtime bijgewerkt."
+            );
+
+        }
+    );
+
+}
+    
 // =========================================================
 // SPELERS REALTIME VOLGEN
 // =========================================================

@@ -2334,59 +2334,65 @@ function resetSeason() {
         return;
     }
 
-    /*
-    Zet de speeltijd en voordeelgeschiedenis
-    van iedere speler terug naar nul.
-    */
+
+    // =========================================================
+    // SPEELTIJD EN VOORDEELGESCHIEDENIS RESETTEN
+    // =========================================================
 
     players.forEach(player => {
 
         player.history = 0;
-
         player.advantageHistory = [];
 
     });
 
-    /*
-    Verwijder alle opgeslagen wedstrijden.
-    */
+
+    // =========================================================
+    // WEDSTRIJDEN LOKAAL RESETTEN
+    // =========================================================
 
     matches = [];
 
-    /*
-    Zet het wedstrijdnummer terug naar 0.
-    */
+    localStorage.removeItem("jo9_matches");
+    localStorage.removeItem("jo9_match_counter");
 
-    localStorage.removeItem(
-        "jo9_matches"
-    );
 
-    localStorage.removeItem(
-        "jo9_match_counter"
-    );
+    // =========================================================
+    // WEDSTRIJDEN OOK IN FIREBASE RESETTEN
+    // =========================================================
 
-    /*
-    Sla de schone spelersgegevens op.
-    */
+    if (
+        window.jo9Firebase &&
+        window.jo9Firebase.saveMatchesToFirebase
+    ) {
+
+        window.jo9Firebase.saveMatchesToFirebase([]);
+
+    }
+
+
+    // =========================================================
+    // SPELERS OPSLAAN
+    // =========================================================
 
     savePlayers();
 
-    /*
-    Werk het scherm direct bij.
-    */
+
+    // =========================================================
+    // SCHERM BIJWERKEN
+    // =========================================================
 
     renderPlayers();
-
-    /*
-    Zorg ervoor dat er geen oud wisselschema
-    meer actief is.
-    */
+    renderPlayerManagement();
+    renderMatches();
 
     currentSchedule = null;
+
 
     document.getElementById(
         "scheduleSection"
     ).style.display = "none";
+
 
     alert(
         "🔄 Het seizoen is gereset!\n\n" +

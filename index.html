@@ -1985,8 +1985,9 @@ function renderMatches() {
                 "match-row";
 
             matchRow.onclick = function() {
-                showMatchDetails(match.matchNumber);
-            };
+    const matchIndex = matches.indexOf(match);
+    showMatchDetails(matchIndex);
+};
 
             let formattedDate =
                 match.date || "Onbekende datum";
@@ -2038,12 +2039,10 @@ function renderMatches() {
         });
 }
     
-  function showMatchDetails(matchNumber) {
+ function showMatchDetails(matchIndex) {
 
     const match =
-        matches.find(
-            match => match.matchNumber === matchNumber
-        );
+        matches[matchIndex];
 
     if (!match) {
         return;
@@ -2095,12 +2094,12 @@ function renderMatches() {
 
             <br>
 
-            <button
-                class="secondary"
-                onclick="deleteMatch(${match.matchNumber})"
-            >
-                🗑️ WEDSTRIJD VERWIJDEREN
-            </button>
+<button
+    class="secondary"
+    onclick="deleteMatch(${matchIndex})"
+>
+    🗑️ WEDSTRIJD VERWIJDEREN
+</button>
 
             <br><br>
 
@@ -2146,7 +2145,8 @@ function renderMatches() {
                     const player =
                         match.players.find(
                             player =>
-                                player.playerId === playerId
+                                String(player.playerId) === 
+                                String(playerId)
                         );
 
                     if (player) {
@@ -2171,16 +2171,14 @@ function renderMatches() {
 
 } 
 
- async function deleteMatch(matchNumber) {
+async function deleteMatch(matchIndex) {
 
     const match =
-        matches.find(
-            match => match.matchNumber === matchNumber
-        );
+    matches[matchIndex];
 
     if (!match) {
-        return;
-    }
+    return;
+}
 
     const confirmed =
         confirm(
@@ -2205,11 +2203,11 @@ function renderMatches() {
     =========================================================
     */
 
-    const newMatches =
-        matches.filter(
-            item =>
-                item.matchNumber !== matchNumber
-        );
+const newMatches =
+    matches.filter(
+        (_, index) =>
+            index !== matchIndex
+    );
 
 
     /*
@@ -2281,31 +2279,31 @@ function renderMatches() {
         SPEELTIJD
         */
 
-        if (Array.isArray(match.players)) {
+if (Array.isArray(match.players)) {
 
-match.players.forEach(
-    matchPlayer => {
+    match.players.forEach(
+        matchPlayer => {
 
-        const player =
-            players.find(
-                player =>
-                    String(player.id) ===
-                    String(matchPlayer.playerId)
-            );
+            const player =
+                players.find(
+                    player =>
+                        String(player.id) ===
+                        String(matchPlayer.playerId)
+                );
 
-        if (player) {
+            if (player) {
 
-            player.history +=
-                Number(
-                    matchPlayer.minutes
-                ) || 0;
+                player.history +=
+                    Number(
+                        matchPlayer.minutes
+                    ) || 0;
 
-        }
-
-    }
-);
+            }
 
         }
+    );
+
+}
 
 
         /*

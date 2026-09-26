@@ -2038,7 +2038,7 @@ function renderMatches() {
         });
 }
     
-function showMatchDetails(matchNumber) {
+  function showMatchDetails(matchNumber) {
 
     const match =
         matches.find(
@@ -2057,9 +2057,9 @@ function showMatchDetails(matchNumber) {
     }
 
     const location =
-        match.homeAway === "Thuis"
-            ? "🏠 Thuis"
-            : "✈️ Uit";
+    match.homeAway === "thuis"
+        ? "🏠 Thuis"
+        : "✈️ Uit";
 
     container.innerHTML = `
         <div class="selected-player">
@@ -2083,15 +2083,26 @@ function showMatchDetails(matchNumber) {
             <h4>⏱️ Speeltijd</h4>
 
             <div id="matchPlayerDetails"></div>
-            ${
-    match.playerCount === 7 && match.advantagePlayerIds?.length
-        ? `
-            <h4>⭐ Voordeel deze wedstrijd</h4>
 
-            <div id="matchAdvantageDetails"></div>
-          `
-        : ""
-}
+            ${
+                match.advantagePlayerIds?.length
+                    ? `
+                        <h4>⭐ Voordeel deze wedstrijd</h4>
+                        <div id="matchAdvantageDetails"></div>
+                      `
+                    : ""
+            }
+
+            <br>
+
+            <button
+                class="secondary"
+                onclick="deleteMatch(${match.matchNumber})"
+            >
+                🗑️ WEDSTRIJD VERWIJDEREN
+            </button>
+
+            <br><br>
 
             <button
                 class="secondary"
@@ -2119,10 +2130,8 @@ function showMatchDetails(matchNumber) {
         playerDetails.appendChild(row);
 
     });
-        if (
-        match.playerCount === 7 &&
-        match.advantagePlayerIds?.length
-    ) {
+
+    if (match.advantagePlayerIds?.length) {
 
         const advantageDetails =
             document.getElementById(
@@ -2159,7 +2168,224 @@ function showMatchDetails(matchNumber) {
         }
 
     }
-}
+
+} 
+
+ async function deleteMatch(matchNumber) {
+
+    const match =
+        matches.find(
+            match => match.matchNumber === matchNumber
+        );
+
+    if (!match) {
+        return;
+    }
+
+    const confirmed =
+        confirm(
+            "⚠️ Weet je het zeker?\n\n" +
+            "Wedstrijd " +
+            match.matchNumber +
+            " met " +
+            (match.opponent || "onbekende tegenstander") +
+            " wordt verwijderd.\n\n" +
+            "De historische speeltijd en voordeelgeschiedenis " +
+            "worden opnieuw berekend op basis van de overgebleven wedstrijden.\n\n" +
+            "Deze actie kan niet ongedaan worden gemaakt."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    /*
+    =========================================================
+    NIEUWE WEDSTRIJDLijst
+    =========================================================
+    */
+
+    const newMatches =
+        matches.filter(
+            item =>
+                item.matchNumber !== matchNumber
+        );
+
+
+    /*
+    =========================================================
+    FIREBASE EERST BIJWERKEN
+    =========================================================
+    */
+
+    if (
+        window.jo9Firebase &&
+        window.jo9Firebase.saveMatchesToFirebase
+    ) {
+
+        const firebaseSaved =
+            await window.jo9Firebase.saveMatchesToFirebase(
+                newMatches
+            );
+
+        if (!firebaseSaved) {
+
+            alert(
+                "❌ De wedstrijd is niet verwijderd.\n\n" +
+                "De verbinding met Firebase kon de wijziging niet opslaan.\n\n" +
+                "Controleer je internetverbinding en probeer het opnieuw."
+            );
+
+            return;
+        }
+
+    }
+
+
+    /*
+    =========================================================
+    WEDSTRIJDEN LOKAAL BIJWERKEN
+    =========================================================
+    */
+
+    matches = newMatches;
+
+    localStorage.setItem(
+        "jo9_matches",
+        JSON.stringify(matches)
+    );
+
+
+    /*
+    =========================================================
+    HISTORISCHE SPEELTIJD OPNIEUW BEREKENEN
+    =========================================================
+    */
+
+    players.forEach(player => {
+
+        player.history = 0;
+
+        player.advantageHistory = [];
+
+    });
+
+
+    /*
+    Loop door alle overgebleven wedstrijden.
+    */
+
+    matches.forEach(match => {
+
+        /*
+        SPEELTIJD
+        */
+
+        if (Array.isArray(match.players)) {
+
+match.players.forEach(
+    matchPlayer => {
+
+        const player =
+            players.find(
+                player =>
+                    String(player.id) ===
+                    String(matchPlayer.playerId)
+            );
+
+        if (player) {
+
+            player.history +=
+                Number(
+                    matchPlayer.minutes
+                ) || 0;
+
+        }
+
+    }
+);
+
+        }
+
+
+        /*
+        VOORDEELGESCHIEDENIS
+        */
+
+        if (
+            Array.isArray(
+                match.advantagePlayerIds
+            )
+        ) {
+
+            match.advantagePlayerIds.forEach(
+                playerId => {
+
+                    const player =
+                        players.find(
+                            player =>
+                               String(player.id) === String(playerId)
+                        );
+
+                    if (player) {
+
+                        if (
+                            !Array.isArray(
+                                player.advantageHistory
+                            )
+                        ) {
+                            player.advantageHistory = [];
+                        }
+
+                        player.advantageHistory.push({
+
+                            matchNumber:
+                                match.matchNumber,
+
+                            playerCount:
+                                match.playerCount
+
+                        });
+
+                    }
+
+                }
+            );
+
+        }
+
+    });
+
+
+    /*
+    =========================================================
+    SPELERS OPSLAAN
+    =========================================================
+    */
+
+    savePlayers();
+
+
+    /*
+    =========================================================
+    SCHERM BIJWERKEN
+    =========================================================
+    */
+
+    renderPlayers();
+
+    renderPlayerManagement();
+
+    renderMatches();
+
+
+    alert(
+        "🗑️ Wedstrijd verwijderd!\n\n" +
+        "De historische speeltijd en voordeelgeschiedenis " +
+        "zijn opnieuw berekend."
+    );
+
+} 
     
 function selectPlayerForManagement(playerId) {
 

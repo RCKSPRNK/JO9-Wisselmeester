@@ -70,6 +70,8 @@
     font-weight: bold;
     color: #617080;
 }
+
+}
     
 * {
     box-sizing: border-box;
@@ -155,6 +157,46 @@ h2 {
         grid-template-columns: 1fr;
     }
 
+    .match-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 10px;
+        padding: 14px;
+        min-width: 0;
+    }
+
+    .match-date {
+        min-width: 0;
+        grid-column: 1;
+        font-size: 14px;
+    }
+
+    .match-info {
+        min-width: 0;
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .match-opponent {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .match-players {
+        margin-left: 0;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .match-arrow {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
 }
     
 .player {
@@ -202,6 +244,198 @@ button {
     color: #17212b;
 }
 
+    .lineup-button {
+    width: 100%;
+    margin-top: 12px;
+    background: #e8edf1;
+    color: #17212b;
+}
+
+.lineup-bench-preview {
+    margin-top: 14px;
+}
+
+.lineup-mini-field {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    background: #159447;
+    border: 2px solid white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.lineup-mini-field::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: white;
+}
+
+.mini-position {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: white;
+    color: #17212b;
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.mini-top-left {
+    left: 28%;
+    top: 25%;
+}
+
+.mini-top-right {
+    left: 72%;
+    top: 25%;
+}
+
+.mini-center {
+    left: 50%;
+    top: 50%;
+}
+
+.mini-bottom-left {
+    left: 28%;
+    top: 72%;
+}
+
+.mini-bottom-right {
+    left: 72%;
+    top: 72%;
+}
+
+.mini-goalkeeper {
+    left: 50%;
+    top: 90%;
+}
+
+.mini-lineup-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+padding-top: 35px;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+}
+    
+.lineup-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.lineup-modal-content {
+    max-width: 900px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.football-field {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 0.72;
+    margin: 20px auto;
+    background: #159447;
+    border: 4px solid white;
+}
+
+.football-field::after {
+    content: "";
+    position: absolute;
+    left: 20%;
+    right: 20%;
+    top: 0;
+    height: 18%;
+    border: 3px solid white;
+    border-top: none;
+}
+    
+.football-field .field-middle-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 3px;
+    background: white;
+}
+    
+.football-field::before {
+    content: "";
+    position: absolute;
+    left: 20%;
+    right: 20%;
+    bottom: 0;
+    height: 18%;
+    border: 3px solid white;
+    border-bottom: none;
+}
+
+.position {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.position select {
+    width: 110px;
+    padding: 6px;
+}
+
+.position span {
+    display: block;
+    background: white;
+    margin-top: 4px;
+    padding: 2px 5px;
+}
+
+.position-top-left {
+    left: 28%;
+    top: 25%;
+}
+
+.position-top-right {
+    left: 72%;
+    top: 25%;
+}
+
+.position-center {
+    left: 50%;
+    top: 50%;
+}
+
+.position-bottom-left {
+    left: 28%;
+    top: 72%;
+}
+
+.position-bottom-right {
+    left: 72%;
+    top: 72%;
+}
+
+.position-goalkeeper {
+    left: 50%;
+    top: 90%;
+}
+    
 button:hover {
     opacity: .9;
 }
@@ -529,6 +763,80 @@ button:hover {
 
 </div>
 
+    <div id="lineupModal" class="lineup-modal" style="display:none;">
+
+    <div class="lineup-modal-content">
+
+        <h2>⚽ Kies opstelling</h2>
+
+        <p id="lineupRoundTitle"></p>
+
+        <div class="football-field">
+
+            <div class="field-middle-line"></div>
+
+            <div class="position position-top-left">
+                <select id="position-top-left" onchange="updateLineup()">
+                    <option value="">Kies speler</option>
+                </select>
+                <span id="name-top-left">Naam</span>
+            </div>
+
+            <div class="position position-top-right">
+                <select id="position-top-right" onchange="updateLineup()">
+                    <option value="">Kies speler</option>
+                </select>
+                <span id="name-top-right">Naam</span>
+            </div>
+
+            <div class="position position-center">
+                <select id="position-center" onchange="updateLineup()">
+                    <option value="">Kies speler</option>
+                </select>
+                <span id="name-center">Naam</span>
+            </div>
+
+            <div class="position position-bottom-left">
+                <select id="position-bottom-left" onchange="updateLineup()">
+                    <option value="">Kies speler</option>
+                </select>
+                <span id="name-bottom-left">Naam</span>
+            </div>
+
+            <div class="position position-bottom-right">
+                <select id="position-bottom-right" onchange="updateLineup()">
+                    <option value="">Kies speler</option>
+                </select>
+                <span id="name-bottom-right">Naam</span>
+            </div>
+
+            <div class="position position-goalkeeper">
+                <select id="position-goalkeeper" onchange="updateLineup()">
+                    <option value="">Kies speler</option>
+                </select>
+                <span id="name-goalkeeper">Naam</span>
+            </div>
+
+        </div>
+
+        <h3>🔴 WISSEL</h3>
+
+        <div id="lineupBenchPlayers">
+            Kies eerst spelers.
+        </div>
+
+        <button
+            type="button"
+            class="secondary"
+            onclick="closeLineup()"
+        >
+            SLUITEN
+        </button>
+
+    </div>
+
+</div>
+    
 <script>
 
 /*
@@ -574,8 +882,255 @@ const STORAGE_VERSION = 3;
 let players = loadPlayers();
 let matches = loadMatches();
 let currentSchedule = null;
+let currentLineupRound = null;
 
+const lineupPositions = [
+    "top-left",
+    "top-right",
+    "center",
+    "bottom-left",
+    "bottom-right",
+    "goalkeeper"
+];
 
+function openLineup(roundIndex) {
+
+    if (!currentSchedule) {
+        return;
+    }
+
+    currentLineupRound = roundIndex;
+
+    document.getElementById("lineupRoundTitle").textContent =
+        `Ronde ${roundIndex + 1} · 10 minuten`;
+
+    document.getElementById("lineupModal").style.display = "block";
+
+    populateLineupSelects();
+}
+
+function populateLineupSelects() {
+
+    const benchIndexes =
+        currentSchedule.benchSchedule[currentLineupRound] || [];
+
+    const savedLineup =
+        currentSchedule.lineups?.[currentLineupRound] || {};
+
+    lineupPositions.forEach(position => {
+
+        const select =
+            document.getElementById(`position-${position}`);
+
+        if (!select) return;
+
+        select.innerHTML =
+            `<option value="">Kies speler</option>`;
+
+        currentSchedule.present.forEach((player, index) => {
+
+            if (benchIndexes.includes(index)) {
+                return;
+            }
+
+            const option =
+                document.createElement("option");
+
+            option.value = player.id;
+            option.textContent = player.name;
+
+            select.appendChild(option);
+        });
+
+        select.value =
+            savedLineup[position] || "";
+    });
+
+    const benchContainer =
+        document.getElementById("lineupBenchPlayers");
+
+    benchContainer.innerHTML =
+        benchIndexes
+            .map(index =>
+                `<div>🔴 ${currentSchedule.present[index].name}</div>`
+            )
+            .join("");
+
+    updateLineup();
+}
+
+function updateLineup() {
+
+    const selectedPlayerIds =
+        lineupPositions
+            .map(position => {
+
+                const select =
+                    document.getElementById(`position-${position}`);
+
+                return select ? select.value : "";
+            })
+            .filter(value => value !== "");
+
+    lineupPositions.forEach(position => {
+
+        const select =
+            document.getElementById(`position-${position}`);
+
+        const name =
+            document.getElementById(`name-${position}`);
+
+        if (!select || !name) return;
+
+        const currentValue = select.value;
+
+        [...select.options].forEach(option => {
+
+            if (!option.value) {
+                option.disabled = false;
+                return;
+            }
+
+            option.disabled =
+                option.value !== currentValue &&
+                selectedPlayerIds.includes(option.value);
+        });
+
+        const player =
+            currentSchedule.present.find(
+                p => String(p.id) === String(currentValue)
+            );
+
+        name.textContent =
+            player ? player.name : "Naam";
+    });
+
+    if (currentSchedule && currentLineupRound !== null) {
+
+        currentSchedule.lineups[currentLineupRound] = {};
+
+        lineupPositions.forEach(position => {
+
+            const select =
+                document.getElementById(`position-${position}`);
+
+            if (select && select.value) {
+                currentSchedule.lineups[currentLineupRound][position] =
+                    select.value;
+            }
+        });
+
+        renderLineupPreview(currentLineupRound);
+    }
+}
+    
+function closeLineup() {
+
+    if (currentSchedule && currentLineupRound !== null) {
+
+        const lineup = {};
+
+        lineupPositions.forEach(position => {
+
+            const select =
+                document.getElementById(
+                    `position-${position}`
+                );
+
+            if (select && select.value) {
+                lineup[position] = select.value;
+            }
+
+        });
+
+        currentSchedule.lineups[currentLineupRound] =
+            lineup;
+
+        renderLineupPreview(currentLineupRound);
+    }
+
+    const modal =
+        document.getElementById("lineupModal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+function renderLineupPreview(roundIndex) {
+
+    const preview =
+        document.getElementById(
+            `lineupBenchPreview-${roundIndex}`
+        );
+
+    if (!preview) return;
+
+    const lineup =
+        currentSchedule?.lineups?.[roundIndex];
+
+    if (!lineup || Object.keys(lineup).length === 0) {
+
+        preview.innerHTML = `
+            <div class="lineup-mini-field">
+                <div class="mini-lineup-empty">
+                    ⚽ Opstelling nog niet gekozen.
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+    const positions = {
+        "top-left": "mini-top-left",
+        "top-right": "mini-top-right",
+        "center": "mini-center",
+        "bottom-left": "mini-bottom-left",
+        "bottom-right": "mini-bottom-right",
+        "goalkeeper": "mini-goalkeeper"
+    };
+
+    const playerNames = {};
+
+    lineupPositions.forEach(position => {
+
+        const playerId =
+            lineup[position];
+
+        const player =
+            currentSchedule.present.find(
+                p => String(p.id) === String(playerId)
+            );
+
+        playerNames[position] =
+            player
+                ? player.name.split(" ")[0]
+                : "";
+    });
+
+    preview.innerHTML = `
+        <div class="lineup-mini-field">
+
+            ${lineupPositions.map(position => {
+
+                const name =
+                    playerNames[position];
+
+                return `
+                    <div
+                        class="mini-position ${positions[position]}"
+                    >
+                        ${name || "—"}
+                    </div>
+                `;
+
+            }).join("")}
+
+        </div>
+    `;
+}
+    
 /* -----------------------------
    OPSLAG
 ----------------------------- */
@@ -1338,14 +1893,15 @@ const present =
         return;
     }
 
-    currentSchedule = {
+   currentSchedule = {
     matchDate,
     matchTime,
     matchHomeAway,
     opponent,
     present,
     playCounts,
-    benchSchedule
+    benchSchedule,
+    lineups: {}
 };
 
 displaySchedule(
@@ -1356,7 +1912,7 @@ displaySchedule(
     present,
     playCounts,
     benchSchedule
-);
+); 
 }
 
 
@@ -1454,7 +2010,7 @@ document.getElementById(
                     </ul>
                 </div>
 
-                <div class="bench">
+                                <div class="bench">
                     <h3>🔴 WISSEL</h3>
 
                     <ul>
@@ -1463,14 +2019,32 @@ document.getElementById(
                                 `<li>🔄 ${present[index].name}</li>`
                         ).join("")}
                     </ul>
+
+                    <div
+    id="lineupBenchPreview-${r}"
+    class="lineup-bench-preview"
+>
+    ⚽ Opstelling nog niet gekozen.
+</div>
                 </div>
 
-            </div>
+                        </div>
+
+
+<button
+    type="button"
+    class="lineup-button"
+    onclick="openLineup(${r})"
+>
+    ⚽ KIES OPSTELLING
+</button>
         `;
 
         rounds.appendChild(div);
     }
-
+    for (let r = 0; r < 4; r++) {
+        renderLineupPreview(r);
+    }
     /*
     Scroll automatisch naar het schema.
     */
@@ -1480,6 +2054,7 @@ document.getElementById(
     ).scrollIntoView({
         behavior: "smooth"
     });
+
 }
 
 
@@ -1500,7 +2075,8 @@ function finishMatch() {
     matchHomeAway,
     opponent,
     present,
-    playCounts
+    playCounts,
+    lineups
 } = currentSchedule;
 
 
@@ -1618,29 +2194,24 @@ function finishMatch() {
 
 
 matches.push({
-
     matchNumber: matchNumber,
-
     date: matchDate,
-
     time: matchTime,
-
     homeAway: matchHomeAway,
-
     opponent: opponent,
-
     playerCount: n,
 
-        presentPlayerIds:
-            present.map(player => player.id),
+    presentPlayerIds:
+        present.map(player => player.id),
 
-        players:
-            playerResults,
+    players:
+        playerResults,
 
-        advantagePlayerIds:
-            advantageIds
+    advantagePlayerIds:
+        advantageIds,
 
-    });
+});
+    
     if (
         window.jo9Firebase &&
         window.jo9Firebase.saveMatchesToFirebase
@@ -2674,30 +3245,15 @@ renderPlayers();
     } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app-check.js";
 
 
-    const firebaseConfig = {
-
-        apiKey:
-            "AIzaSyBr10MJwdm3tR-Kc-ks2tLIGbOX_zkM6kk",
-
-        authDomain:
-            "jo9-wisselmeester.firebaseapp.com",
-
-        projectId:
-            "jo9-wisselmeester",
-
-        storageBucket:
-            "jo9-wisselmeester.firebasestorage.app",
-
-        messagingSenderId:
-            "757290271996",
-
-        appId:
-            "1:757290271996:web:a74bcbd439cd3eb26dc379",
-
-        databaseURL:
-            "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
-
-    };
+  const firebaseConfig = {
+  apiKey: "AIzaSyBr10MJwdm3tR-Kc-ks2tLIGbOX_zkM6kk",
+  authDomain: "jo9-wisselmeester.firebaseapp.com",
+  projectId: "jo9-wisselmeester",
+  storageBucket: "jo9-wisselmeester.firebasestorage.app",
+  messagingSenderId: "757290271996",
+appId: "1:757290271996:web:a74bcbd439cd3eb26dc379",
+databaseURL: "https://jo9-wisselmeester-default-rtdb.europe-west1.firebasedatabase.app"
+};
 
 
     // =========================================================
@@ -3065,6 +3621,16 @@ function watchPlayersFromFirebase() {
         });
 
 </script>
-    
+<div id="lineupModal" class="lineup-modal" style="display:none;">
+
+    <div class="lineup-modal-content">
+
+        <h2>⚽ Kies opstelling</h2>
+
+        <p id="lineupRoundTitle"></p>
+
+        <div class="football-field">
+
+     
 </body>
 </html>
